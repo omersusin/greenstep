@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# Android
+*.apk
+*.aab
+*.iml
+.idea/
+captures/
+.cxx/
+*.keystore
+*.jks
+
+# Kotlin
+*.hprof
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Termux
+.com.googlecode.auscpp*
