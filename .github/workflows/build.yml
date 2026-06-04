@@ -32,9 +32,14 @@ jobs:
 
       - name: Generate Gradle wrapper
         run: |
+          # Move real build script aside; use a placeholder to avoid evaluating
+          # version catalog references before the wrapper is generated.
+          mv build.gradle.kts build.gradle.kts.bak
+          echo '// placeholder' > build.gradle.kts
           curl -sSL -o gradle.zip https://services.gradle.org/distributions/gradle-8.12-bin.zip
           unzip -q gradle.zip
           ./gradle-8.12/bin/gradle wrapper --gradle-version 8.12
+          mv build.gradle.kts.bak build.gradle.kts
 
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
