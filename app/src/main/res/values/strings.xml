@@ -8,7 +8,17 @@
     <string name="nav_history">History</string>
     <string name="nav_insights">Insights</string>
 
-    <string name="home_welcome_sprout">Hello, sprout. Filiz is waking up.</string>
     <string name="filiz_dialog_title">Filiz</string>
+    <string name="home_welcome_sprout">Hello, sprout. Filiz is waking up.</string>
+    <string name="home_skeleton_loading">Wiring up Filiz…</string>
+
+    <string name="activity_coming_soon">GPS workouts arrive in Phase 3</string>
+    <string name="activity_subtitle">For now, every step you take still counts toward your daily goal.</string>
+
+    <string name="history_coming_soon">Daily history arrives in Phase 2</string>
+    <string name="history_subtitle">Once you have a week of data, you\'ll see trends here.</string>
+
+    <string name="insights_coming_soon">The insights engine grows in Phase 2</string>
+    <string name="insights_subtitle">It will read your data on-device and surface patterns, completely offline.</string>
 
 </resources>
