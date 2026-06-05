@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Soil shadow -->
+    <path
+        android:fillColor="#3E2723"
+        android:fillAlpha="0.35"
+        android:pathData="M28,92 Q60,84 92,92 Q92,100 60,100 Q28,100 28,92 Z" />
+
+    <!-- Seed (now cracked open) -->
+    <path
+        android:fillColor="#6D4C41"
+        android:pathData="M52,84 C48,80 48,72 52,68 L60,72 L60,80 C58,82 54,84 52,84 Z" />
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M68,84 C72,80 72,72 68,68 L60,72 L60,80 C62,82 66,84 68,84 Z" />
+
+    <!-- Stem -->
+    <path
+        android:strokeColor="#7CB342"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M60,68 L60,38" />
+
+    <!-- Left leaf -->
+    <path
+        android:fillColor="#9CCC65"
+        android:pathData="M60,48 C50,46 42,40 40,32 C46,30 54,34 60,42 Z" />
+
+    <!-- Right leaf -->
+    <path
+        android:fillColor="#9CCC65"
+        android:pathData="M60,42 C70,40 78,34 80,26 C74,24 66,28 60,36 Z" />
+
+    <!-- Top tiny tip -->
+    <path
+        android:fillColor="#AED581"
+        android:pathData="M60,38 C58,34 58,28 60,24 C62,28 62,34 60,38 Z" />
+
+</vector>

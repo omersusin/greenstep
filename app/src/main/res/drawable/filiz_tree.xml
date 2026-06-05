@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Ground shadow -->
+    <path
+        android:fillColor="#3E2723"
+        android:fillAlpha="0.35"
+        android:pathData="M22,98 Q60,90 98,98 Q98,108 60,108 Q22,108 22,98 Z" />
+
+    <!-- Trunk (thick brown) -->
+    <path
+        android:fillColor="#6D4C41"
+        android:pathData="M54,90 L54,60 C54,56 66,56 66,60 L66,90 Z" />
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M56,80 L56,66 C56,64 64,64 64,66 L64,80 Z" />
+
+    <!-- Lower foliage cluster (large background shape) -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M60,12 C30,12 14,34 14,52 C14,68 28,76 42,72 C44,76 50,80 60,80 C70,80 76,76 78,72 C92,76 106,68 106,52 C106,34 90,12 60,12 Z" />
+
+    <!-- Mid foliage highlight -->
+    <path
+        android:fillColor="#388E3C"
+        android:pathData="M40,30 C30,30 22,40 24,50 C26,58 36,60 44,56 C44,46 50,32 60,30 C54,28 46,28 40,30 Z" />
+    <path
+        android:fillColor="#388E3C"
+        android:pathData="M80,30 C90,30 98,40 96,50 C94,58 84,60 76,56 C76,46 70,32 60,30 C66,28 74,28 80,30 Z" />
+
+    <!-- Top foliage highlight -->
+    <path
+        android:fillColor="#43A047"
+        android:pathData="M60,18 C48,18 38,26 40,38 C42,46 52,46 60,42 C68,46 78,46 80,38 C82,26 72,18 60,18 Z" />
+
+    <!-- A few small leaves (texture) -->
+    <path
+        android:fillColor="#66BB6A"
+        android:pathData="M28,48 C26,46 24,48 24,50 C26,50 28,50 28,48 Z" />
+    <path
+        android:fillColor="#66BB6A"
+        android:pathData="M92,48 C94,46 96,48 96,50 C94,50 92,50 92,48 Z" />
+    <path
+        android:fillColor="#81C784"
+        android:pathData="M60,22 C58,20 56,22 56,24 C58,24 60,24 60,22 Z" />
+
+    <!-- A single decorative fruit (small bright accent) -->
+    <path
+        android:fillColor="#FFB74D"
+        android:pathData="M44,56 C42,54 40,56 40,58 C40,60 42,62 44,62 C46,62 48,60 48,58 C48,56 46,54 44,56 Z" />
+    <path
+        android:fillColor="#FFB74D"
+        android:pathData="M76,60 C74,58 72,60 72,62 C72,64 74,66 76,66 C78,66 80,64 80,62 C80,60 78,58 76,60 Z" />
+
+</vector>

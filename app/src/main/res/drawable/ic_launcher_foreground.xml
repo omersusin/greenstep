@@ -4,10 +4,34 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Adaptive icon safe zone: center 66x66 (within 108x108). -->
+    <!-- Soil -->
     <path
-        android:fillColor="#2E7D32"
-        android:pathData="M54,30 C40,30 30,42 30,56 C30,72 54,86 54,86 C54,86 78,72 78,56 C78,42 68,30 54,30 Z" />
+        android:fillColor="#3E2723"
+        android:fillAlpha="0.4"
+        android:pathData="M30,82 Q54,76 78,82 Q78,88 54,88 Q30,88 30,82 Z" />
+
+    <!-- Stem -->
+    <path
+        android:strokeColor="#66BB6A"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M54,76 L54,42" />
+
+    <!-- Left leaf -->
+    <path
+        android:fillColor="#81C784"
+        android:pathData="M54,56 C44,54 38,48 36,40 C42,38 50,42 54,50 Z" />
+
+    <!-- Right leaf -->
+    <path
+        android:fillColor="#81C784"
+        android:pathData="M54,50 C64,48 70,42 72,34 C66,32 58,36 54,44 Z" />
+
+    <!-- Top tip -->
     <path
         android:fillColor="#A5D6A7"
-        android:pathData="M54,40 C46,40 40,48 40,56 C40,66 54,76 54,76 C54,76 68,66 68,56 C68,48 62,40 54,40 Z" />
+        android:pathData="M54,42 C52,38 52,32 54,28 C56,32 56,38 54,42 Z" />
+
 </vector>

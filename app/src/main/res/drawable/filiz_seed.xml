@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Soil shadow under seed -->
+    <path
+        android:fillColor="#3E2723"
+        android:fillAlpha="0.35"
+        android:pathData="M30,90 Q60,82 90,90 Q90,98 60,98 Q30,98 30,90 Z" />
+
+    <!-- Seed body (oval, brown) -->
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M60,52 C50,52 44,62 44,72 C44,82 50,88 60,88 C70,88 76,82 76,72 C76,62 70,52 60,52 Z" />
+
+    <!-- Seed highlight -->
+    <path
+        android:fillColor="#A1887F"
+        android:pathData="M52,60 C48,62 47,68 49,72 C50,68 53,64 56,62 C55,61 53,60 52,60 Z" />
+
+    <!-- Tiny crack (hatching line) -->
+    <path
+        android:strokeColor="#5D4037"
+        android:strokeWidth="1.5"
+        android:pathData="M60,55 L60,75" />
+
+</vector>
