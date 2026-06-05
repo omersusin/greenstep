@@ -129,3 +129,6 @@
     <!-- Batch 2C placeholders -->
     <string name="home_welcome_sprout">Hello, sprout.</string>
     <string name="home_skeleton_loading">Wiring up Filiz…</string>
+
+    <!-- Batch 2C-prime -->
+    <string name="home_welcome_sprout">Hello, sprout. Filiz is waking up.</string>
