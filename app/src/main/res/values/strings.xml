@@ -125,3 +125,7 @@
     <string name="back">Back</string>
 
 </resources>
+
+    <!-- Batch 2C placeholders -->
+    <string name="home_welcome_sprout">Hello, sprout.</string>
+    <string name="home_skeleton_loading">Wiring up Filiz…</string>
