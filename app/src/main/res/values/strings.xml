@@ -1,4 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- App -->
     <string name="app_name">GreenStep</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_activity">Activity</string>
+    <string name="nav_history">History</string>
+    <string name="nav_insights">Insights</string>
+
+    <!-- Home -->
+    <string name="home_greeting_morning">Good morning, sprout</string>
+    <string name="home_greeting_afternoon">Good afternoon, sprout</string>
+    <string name="home_greeting_evening">Good evening, sprout</string>
+    <string name="home_greeting_night">Resting up, sprout?</string>
+    <string name="home_today_label">Today</string>
+    <string name="home_steps_progress">%1$d / %2$d steps</string>
+    <string name="home_goal_reached">Goal reached</string>
+    <string name="home_distance_label">Distance</string>
+    <string name="home_calories_label">Calories</string>
+    <string name="home_active_label">Active</string>
+    <string name="home_distance_format">%1$.2f km</string>
+    <string name="home_calories_format">%1$d kcal</string>
+    <string name="home_active_format">%1$d min</string>
+    <string name="home_streak_label">Day streak</string>
+    <string name="home_level_label">Level %1$d</string>
+    <string name="home_xp_format">%1$d / %2$d XP</string>
+    <string name="home_weekly_path_title">This week</string>
+    <string name="home_quests_title">Daily quests</string>
+    <string name="home_chart_title">Last 7 days</string>
+
+    <!-- Day names (short) -->
+    <string name="day_short_mon">M</string>
+    <string name="day_short_tue">T</string>
+    <string name="day_short_wed">W</string>
+    <string name="day_short_thu">T</string>
+    <string name="day_short_fri">F</string>
+    <string name="day_short_sat">S</string>
+    <string name="day_short_sun">S</string>
+
+    <!-- Quest states -->
+    <string name="quest_complete">Done</string>
+    <string name="quest_progress_format">%1$d / %2$d</string>
+    <string name="quest_reward_format">+%1$d XP</string>
+
+    <!-- Filiz dialog -->
+    <string name="filiz_dialog_title">Filiz</string>
+    <string name="filiz_dialog_stage_seed">Just sprouted</string>
+    <string name="filiz_dialog_stage_sprout">Growing nicely</string>
+    <string name="filiz_dialog_stage_plant">Strong and steady</string>
+    <string name="filiz_dialog_stage_tree">Flourishing</string>
+    <string name="filiz_dialog_tap_close">Tap to close</string>
+    <string name="filiz_streak_at_risk">Don\'t let our streak wilt!</string>
+    <string name="filiz_goal_reached">We did it! I\'m a little taller today.</string>
+    <string name="filiz_walk_invite">A short walk and I\'ll grow a bit taller.</string>
+    <string name="filiz_welcome">Welcome back. Ready to grow?</string>
+    <string name="filiz_quest_complete">Nice — that\'s a leaf well earned.</string>
+
+    <!-- Activity (Phase 1 stub) -->
+    <string name="activity_title">Activity</string>
+    <string name="activity_coming_soon">GPS workouts arrive in Phase 3</string>
+    <string name="activity_subtitle">For now, every step you take still counts toward your daily goal.</string>
+
+    <!-- History (Phase 1 stub) -->
+    <string name="history_title">History</string>
+    <string name="history_coming_soon">Daily history arrives in Phase 2</string>
+    <string name="history_subtitle">Once you have a week of data, you\'ll see trends here.</string>
+
+    <!-- Insights (Phase 1 stub) -->
+    <string name="insights_title">Insights</string>
+    <string name="insights_coming_soon">The insights engine grows in Phase 2</string>
+    <string name="insights_subtitle">It will read your data on-device and surface patterns, completely offline.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_daily_goal">Daily step goal</string>
+    <string name="settings_units">Units</string>
+    <string name="settings_units_metric">Metric (km)</string>
+    <string name="settings_units_imperial">Imperial (mi)</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_system">Follow system</string>
+    <string name="settings_accent">Accent color</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version 0.1.0</string>
+    <string name="settings_made_with">Made with leaves, not ads.</string>
+
+    <!-- Achievements -->
+    <string name="achievements_title">Achievements</string>
+    <string name="achievements_unlocked_count">%1$d / %2$d unlocked</string>
+    <string name="achievements_locked">Locked</string>
+    <string name="achievement_first_step">First Step</string>
+    <string name="achievement_first_step_desc">Take your first tracked steps.</string>
+    <string name="achievement_goal_first">Goal Setter</string>
+    <string name="achievement_goal_first_desc">Reach your daily goal for the first time.</string>
+    <string name="achievement_streak_3">Three in a Row</string>
+    <string name="achievement_streak_3_desc">Hit your goal three days in a row.</string>
+    <string name="achievement_streak_7">Weekly Sprout</string>
+    <string name="achievement_streak_7_desc">A full week of goals reached.</string>
+    <string name="achievement_streak_30">Monthly Bloom</string>
+    <string name="achievement_streak_30_desc">30 days of consistency.</string>
+    <string name="achievement_10k_day">Ten Thousand</string>
+    <string name="achievement_10k_day_desc">Take 10,000 steps in a single day.</string>
+    <string name="achievement_100k_total">Centurion</string>
+    <string name="achievement_100k_total_desc">Walk 100,000 lifetime steps.</string>
+    <string name="achievement_level_5">Filiz\'s Friend</string>
+    <string name="achievement_level_5_desc">Reach level 5.</string>
+    <string name="achievement_level_10">Green Thumb</string>
+    <string name="achievement_level_10_desc">Reach level 10.</string>
+    <string name="achievement_first_workout">Trail Opener</string>
+    <string name="achievement_first_workout_desc">Record your first GPS workout.</string>
+
+    <!-- Notifications (Phase 2+ — scaffolded strings for now) -->
+    <string name="notif_channel_steps_name">Step tracking</string>
+    <string name="notif_channel_steps_desc">Shows your current step count so you always know how today is going.</string>
+    <string name="notif_steps_title">GreenStep</string>
+    <string name="notif_steps_text_format">%1$d steps today</string>
+
+    <!-- Generic -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+
 </resources>

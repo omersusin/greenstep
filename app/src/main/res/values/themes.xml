@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.GreenStep" parent="android:Theme.Material.NoActionBar" />
+
+    <!-- Base theme (light). Compose Theme handles Material 3 color scheme; this is the
+         Activity-level theme for the splash and status bar. -->
+    <style name="Theme.GreenStep" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/surface_light</item>
+        <item name="android:navigationBarColor">@color/surface_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
 </resources>
