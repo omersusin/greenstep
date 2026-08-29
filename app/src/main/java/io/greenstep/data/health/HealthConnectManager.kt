@@ -37,7 +37,7 @@ class HealthConnectManager(private val context: Context) {
         return hasPermissions()
     }
 
-    fun getPermissions(): Set<HealthPermission> = permissions
+    fun getPermissions(): Set<String> = permissions
 
     suspend fun readSteps(start: Instant, end: Instant): Long {
         if (!isAvailable()) return 0L
