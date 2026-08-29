@@ -23,12 +23,21 @@ data class MotionScheme(
     val expressiveSpring: AnimationSpec<Float> = GreenStepMotion.expressiveSpring,
     val gentleSpring: AnimationSpec<Float> = GreenStepMotion.gentleSpring,
     val standardSpring: AnimationSpec<Float> = GreenStepMotion.standardSpring,
-    val pressSpring: AnimationSpec<Float> = GreenStepMotion.pressSpring
+    val pressSpring: AnimationSpec<Float> = GreenStepMotion.pressSpring,
+    val reduceMotion: Boolean = false
 )
 
 val LocalMotionScheme = staticCompositionLocalOf { MotionScheme() }
 
 @Composable
-fun ProvideMotionScheme(content: @Composable () -> Unit) {
-    content()
+fun ProvideMotionScheme(reduceMotion: Boolean = false, content: @Composable () -> Unit) {
+    val scheme = if (reduceMotion) MotionScheme(
+        expressiveSpring = GreenStepMotion.gentleSpring,
+        gentleSpring = GreenStepMotion.gentleSpring,
+        standardSpring = GreenStepMotion.gentleSpring,
+        pressSpring = GreenStepMotion.gentleSpring,
+        reduceMotion = true
+    ) else MotionScheme(reduceMotion = false)
+    androidx.compose.runtime.CompositionLocalProvider(LocalMotionScheme provides scheme) { content() }
+}
 }

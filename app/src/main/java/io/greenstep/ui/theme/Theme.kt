@@ -232,7 +232,9 @@ fun GreenStepTheme(
 ) {
     val colors = when {
         themeChoice != null -> when (themeChoice) {
-            ThemeChoice.MEADOW -> MeadowColors
+            ThemeChoice.MEADOW -> if (darkTheme) MeadowDarkColors else MeadowColors
+            ThemeChoice.OCEAN -> if (darkTheme) OceanDarkColors else OceanColors
+            ThemeChoice.SUNSET -> if (darkTheme) SunsetDarkColors else SunsetColors
             ThemeChoice.NIGHT -> NightColors
             ThemeChoice.DARK -> DarkColors
             ThemeChoice.LIGHT -> LightColors

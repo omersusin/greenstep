@@ -1,11 +1,15 @@
 package io.greenstep.ui.history
 
-import androidx.lifecycle.ViewModel
-import io.greenstep.data.history.Day
-import kotlinx.coroutines.flow.MutableStateFlow
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import io.greenstep.GreenStepApplication
+import io.greenstep.data.day.Day
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 
-class HistoryViewModel : ViewModel() {
-    private val _days = MutableStateFlow<List<Day>>(emptyList())
-    val days: StateFlow<List<Day>> = _days
+class HistoryViewModel(application: Application) : AndroidViewModel(application) {
+    private val dao = (application as GreenStepApplication).greenStepDatabase.dayDao()
+    val days: StateFlow<List<Day>> = dao.getAllDays().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

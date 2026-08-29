@@ -67,6 +67,11 @@ enum class Destination(
         labelRes = io.greenstep.R.string.nav_feed,
         icon = Icons.Outlined.Group,
     ),
+    Places(
+        route = "places",
+        labelRes = io.greenstep.R.string.places_title,
+        icon = Icons.Outlined.Map,
+    ),
 }
 
 val BottomBarDestinations: List<Destination> = listOf(

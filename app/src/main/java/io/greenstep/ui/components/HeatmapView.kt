@@ -26,6 +26,7 @@ fun HeatmapView(
     modifier: Modifier = Modifier,
     columns: Int = 7,
     rows: Int = 5,
+    goal: Int? = null,
     contentDesc: String? = null,
 ) {
     val total = columns * rows
@@ -34,37 +35,23 @@ fun HeatmapView(
         else -> steps + List(total - steps.size) { 0 }
     }
     val max = (data.maxOrNull() ?: 0).coerceAtLeast(1)
+    val goalRef = goal?.coerceAtLeast(1)
     val minCellColor = MaterialTheme.colorScheme.surfaceVariant
     val maxCellColor = Green700
     val midCellColor = Green300
-
-    Column(
-        modifier = modifier.fillMaxWidth().then(
-            if (contentDesc != null) Modifier.semantics { contentDescription = contentDesc } else Modifier
-        ),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
+    Column(modifier = modifier.fillMaxWidth().then(if (contentDesc != null) Modifier.semantics { contentDescription = contentDesc } else Modifier), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         for (r in 0 until rows) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 for (c in 0 until columns) {
                     val idx = r * columns + c
                     val value = data[idx]
-                    val fraction = value.toFloat() / max.toFloat()
+                    val fraction = if (goalRef != null) (value.toFloat() / goalRef.toFloat()).coerceIn(0f, 1f) else value.toFloat() / max.toFloat()
                     val color: Color = when {
                         fraction <= 0f -> minCellColor
                         fraction < 0.5f -> lerp(minCellColor, midCellColor, fraction * 2f)
                         else -> lerp(midCellColor, maxCellColor, (fraction - 0.5f) * 2f)
                     }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(color),
-                    )
+                    Box(modifier = Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(color))
                 }
             }
         }
@@ -72,9 +59,6 @@ fun HeatmapView(
 }
 
 @Composable
-fun HeatmapViewDays(
-    stepsByDay: List<Int>,
-    modifier: Modifier = Modifier,
-) {
+fun HeatmapViewDays(stepsByDay: List<Int>, modifier: Modifier = Modifier) {
     HeatmapView(steps = stepsByDay, modifier = modifier)
 }

@@ -28,7 +28,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
 import io.greenstep.ui.theme.GreenStepMotion
+import io.greenstep.ui.theme.LocalMotionScheme
+import io.greenstep.ui.theme.ThemeManager
 
 @Composable
 fun ConstrainedText(
@@ -154,13 +158,36 @@ fun ConstrainedButton(
     val haptic = LocalHapticFeedback.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = GreenStepMotion.pressSpring, label = "btnScale")
+    val motion = LocalMotionScheme.current
+    val spec = if (motion.reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring
+    val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = spec, label = "btnScale")
     Button(
         onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); onClick() },
         modifier = modifier.widthIn(max = 280.dp).scale(scale),
         enabled = enabled,
         interactionSource = interaction,
         content = content,
+    )
+}
+
+@Composable
+fun PressableCardButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val ctx = LocalContext.current
+    val reduce by ThemeManager.reduceMotionFlow(ctx).collectAsState(initial = false)
+    val spec = if (reduce) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring
+    val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = spec, label = "cardBtnScale")
+    androidx.compose.material3.Card(
+        onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); onClick() },
+        interactionSource = interaction,
+        modifier = modifier.scale(scale),
+        content = { content() }
     )
 }
 
@@ -184,10 +211,25 @@ private fun ConstrainedTextLongPreview() {
     }
 }
 
+@Preview(showBackground = true, name = "PillChip 40-char German")
+@Composable
+private fun PillChip40CharGermanPreview() {
+    PillChip(label = "Geschwindigkeitsüberschreitungsverfahren", onClick = {})
+}
+
 @Preview(showBackground = true, name = "Button long label")
 @Composable
 private fun ConstrainedButtonLongPreview() {
     Row {
         ConstrainedButton(text = "Sehr langer Button Text mit Ellipsis Verhalten", onClick = {}, modifier = Modifier.weight(1f, fill = false))
+    }
+}
+
+@Preview(showBackground = true, name = "PillChip long German 40")
+@Composable
+private fun PillChipLongGerman40Preview() {
+    Row {
+        PillChip(label = "Donaudampfschifffahrtsgesellschaftskapitän", onClick = {}, modifier = Modifier.weight(1f, fill = false))
+        PillFilterChip(label = "Geschwindigkeitsbegrenzungsüberschreitung", selected = false, onClick = {}, modifier = Modifier.weight(1f, fill = false))
     }
 }
