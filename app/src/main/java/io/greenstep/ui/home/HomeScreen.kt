@@ -59,7 +59,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(onShopClick: () -> Unit = {}) {
     var progress by remember { mutableStateOf(0.42f) }
     var isRefreshing by remember { mutableStateOf(false) }
     var showConfetti by remember { mutableStateOf(false) }
@@ -182,6 +182,7 @@ fun HomeScreen() {
                 Button(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onShopClick()
                     },
                     interactionSource = btnInteraction,
                     modifier = Modifier.scale(btnScale)
