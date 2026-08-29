@@ -204,4 +204,5 @@
     <string name="achievements_unlocked">%1$d / %2$d unlocked</string>
     <string name="ach_locked">Locked</string>
     <string name="ach_unlocked">Unlocked</string>
+    <string name="widget_desc">Shows today steps and Filiz progress on home screen.</string>
 </resources>
