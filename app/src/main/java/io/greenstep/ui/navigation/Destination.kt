@@ -3,9 +3,13 @@ package io.greenstep.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.DirectionsRun
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -42,6 +46,26 @@ enum class Destination(
         route = "map",
         labelRes = io.greenstep.R.string.nav_map,
         icon = Icons.Outlined.Map,
+    ),
+    Shop(
+        route = "shop",
+        labelRes = io.greenstep.R.string.nav_shop,
+        icon = Icons.Outlined.ShoppingBag,
+    ),
+    Settings(
+        route = "settings",
+        labelRes = io.greenstep.R.string.nav_settings,
+        icon = Icons.Outlined.Settings,
+    ),
+    Challenges(
+        route = "challenges",
+        labelRes = io.greenstep.R.string.nav_challenges,
+        icon = Icons.Outlined.EmojiEvents,
+    ),
+    Feed(
+        route = "feed",
+        labelRes = io.greenstep.R.string.nav_feed,
+        icon = Icons.Outlined.Group,
     ),
 }
 

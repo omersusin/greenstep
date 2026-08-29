@@ -4,9 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -156,18 +156,19 @@ internal fun ActivityContent(
         }
         item(key = "button") {
             val haptics = LocalHapticFeedback.current
-            var pressed by remember { mutableStateOf(false) }
+            val interaction = remember { MutableInteractionSource() }
+            val pressed by interaction.collectIsPressedAsState()
             val scale by animateFloatAsState(
-                targetValue = if (pressed) 0.96f else 1f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                targetValue = if (pressed) 0.97f else 1f,
+                animationSpec = io.greenstep.ui.theme.GreenStepMotion.pressSpring,
                 label = "startScale",
             )
             Button(
                 onClick = {
-                    pressed = !pressed
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onToggleRun()
                 },
+                interactionSource = interaction,
                 modifier = Modifier.fillMaxWidth().scale(scale),
                 shape = RoundedCornerShape(24.dp),
                 contentPadding = PaddingValues(16.dp),

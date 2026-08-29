@@ -7,6 +7,9 @@ package io.greenstep.ui.components
  * Use PillChip/PillFilterChip/PillSuggestionChip/ConstrainedText/ConstrainedButton instead of raw components.
  */
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.widthIn
@@ -16,10 +19,16 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.greenstep.ui.theme.GreenStepMotion
 
 @Composable
 fun ConstrainedText(
@@ -142,10 +151,15 @@ fun ConstrainedButton(
         )
     },
 ) {
+    val haptic = LocalHapticFeedback.current
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = GreenStepMotion.pressSpring, label = "btnScale")
     Button(
-        onClick = onClick,
-        modifier = modifier.widthIn(max = 280.dp),
+        onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); onClick() },
+        modifier = modifier.widthIn(max = 280.dp).scale(scale),
         enabled = enabled,
+        interactionSource = interaction,
         content = content,
     )
 }

@@ -22,6 +22,8 @@ import io.greenstep.ui.history.HistoryScreen
 import io.greenstep.ui.home.HomeScreen
 import io.greenstep.ui.insights.InsightsScreen
 import io.greenstep.ui.map.MapScreen
+import io.greenstep.ui.settings.SettingsScreen
+import io.greenstep.ui.shop.ShopScreen
 
 @Composable
 fun GreenStepNav() {
@@ -72,11 +74,13 @@ fun GreenStepNav() {
             startDestination = Destination.Home.route,
             modifier = Modifier.padding(padding),
         ) {
-            composable(Destination.Home.route)      { HomeScreen() }
+            composable(Destination.Home.route) { HomeScreen(onShopClick = { navController.navigate(Destination.Shop.route) }) }
             composable(Destination.Activity.route)  { ActivityScreen() }
             composable(Destination.Map.route)       { MapScreen() }
             composable(Destination.History.route)   { HistoryScreen() }
             composable(Destination.Insights.route)  { InsightsScreen() }
+            composable(Destination.Shop.route)      { ShopScreen() }
+            composable(Destination.Settings.route)  { SettingsScreen() }
         }
     }
 }

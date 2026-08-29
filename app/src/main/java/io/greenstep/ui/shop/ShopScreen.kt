@@ -24,6 +24,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,13 +34,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.greenstep.R
 import io.greenstep.data.economy.CoinStore
+import io.greenstep.ui.theme.GreenStepMotion
 import kotlinx.coroutines.launch
 
 private data class ShopItem(
@@ -149,16 +156,20 @@ fun ShopScreen(
                                 color = MaterialTheme.colorScheme.tertiary,
                                 modifier = Modifier.padding(top = 6.dp)
                             )
+                            val btnInteraction = remember { MutableInteractionSource() }
+                            val pressed by btnInteraction.collectIsPressedAsState()
+                            val btnScale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = GreenStepMotion.pressSpring, label = "buyScale")
+                            val haptic = LocalHapticFeedback.current
                             Button(
                                 onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     scope.launch {
                                         val ok = store.spendCoins(item.price)
                                         snackbarHostState.showSnackbar(if (ok) purchased else notEnough)
                                     }
                                 },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
+                                interactionSource = btnInteraction,
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).scale(btnScale)
                             ) {
                                 Text(
                                     text = stringResource(R.string.shop_buy),

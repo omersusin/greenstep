@@ -16,8 +16,15 @@ object Haptics {
     @Composable
     private fun isEnabled(): Boolean {
         val ctx = LocalContext.current
-        val enabled by ThemeManagerHaptics.collect(ctx)
+        val enabled by ThemeManagerHaptics.collectHaptics(ctx)
         return enabled
+    }
+
+    @Composable
+    private fun isReduceMotion(): Boolean {
+        val ctx = LocalContext.current
+        val reduce by ThemeManagerHaptics.collectReduceMotion(ctx)
+        return reduce
     }
 
     @Composable
@@ -26,13 +33,20 @@ object Haptics {
         val ctx = LocalContext.current
         if (!isEnabled()) return
         fb.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        if (!isReduceMotion()) vibrate(ctx, 20, 80)
     }
 
     @Composable
     fun medium() {
         val fb = LocalHapticFeedback.current
+        val ctx = LocalContext.current
         if (!isEnabled()) return
+        if (isReduceMotion()) {
+            fb.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            return
+        }
         fb.performHapticFeedback(HapticFeedbackType.LongPress)
+        vibrate(ctx, 40, 120)
     }
 
     @Composable
@@ -40,6 +54,10 @@ object Haptics {
         val ctx = LocalContext.current
         if (!isEnabled()) return
         val fb = LocalHapticFeedback.current
+        if (isReduceMotion()) {
+            fb.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            return
+        }
         fb.performHapticFeedback(HapticFeedbackType.LongPress)
         vibrate(ctx, 60, 180)
     }
@@ -48,6 +66,10 @@ object Haptics {
     fun success() {
         val ctx = LocalContext.current
         if (!isEnabled()) return
+        if (isReduceMotion()) {
+            LocalHapticFeedback.current.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            return
+        }
         vibratePattern(ctx, longArrayOf(0, 40, 40, 60))
     }
 
@@ -55,6 +77,10 @@ object Haptics {
     fun error() {
         val ctx = LocalContext.current
         if (!isEnabled()) return
+        if (isReduceMotion()) {
+            LocalHapticFeedback.current.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            return
+        }
         vibratePattern(ctx, longArrayOf(0, 80, 40, 80))
     }
 
@@ -67,8 +93,12 @@ object Haptics {
 
 private object ThemeManagerHaptics {
     @Composable
-    fun collect(context: Context): androidx.compose.runtime.State<Boolean> {
+    fun collectHaptics(context: Context): androidx.compose.runtime.State<Boolean> {
         return io.greenstep.ui.theme.ThemeManager.hapticsEnabledFlow(context).collectAsState(initial = true)
+    }
+    @Composable
+    fun collectReduceMotion(context: Context): androidx.compose.runtime.State<Boolean> {
+        return io.greenstep.ui.theme.ThemeManager.reduceMotionFlow(context).collectAsState(initial = false)
     }
 }
 
