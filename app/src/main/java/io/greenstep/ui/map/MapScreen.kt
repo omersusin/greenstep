@@ -16,7 +16,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +34,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.IosShare
@@ -56,7 +59,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,15 +66,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,6 +75,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import io.greenstep.R
 import io.greenstep.data.map.GpxExporter
 import io.greenstep.data.map.LatLng
@@ -95,10 +92,44 @@ import io.greenstep.ui.theme.Green500
 import io.greenstep.ui.theme.GreenStepMotion
 import io.greenstep.ui.theme.ThemeManager
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 import java.io.File
-import kotlin.math.max
-import kotlin.math.min
+
+@Composable
+fun rememberMapViewWithLifecycle(): MapView {
+    val context = LocalContext.current
+    val mapView = remember {
+        MapView(context).apply {
+            clipToOutline = true
+            setTileSource(TileSourceFactory.MAPNIK)
+            setMultiTouchControls(true)
+            isTilesScaledToDpi = true
+            maxZoomLevel = 19.0
+            minZoomLevel = 4.0
+            controller.setZoom(15.0)
+            controller.setCenter(GeoPoint(40.7128, -74.0060))
+        }
+    }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val observer = remember(mapView) {
+        LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                else -> {}
+            }
+        }
+    }
+    DisposableEffect(lifecycle) {
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    return mapView
+}
 
 @Composable
 fun MapScreen() {
@@ -135,7 +166,7 @@ fun MapScreen() {
     val isPaused = servicePaused
     LaunchedEffect(isTracking, isPaused) { if(isTracking && !isPaused){ startMs=System.currentTimeMillis()-durationMs; while(true){ delay(1000); if(!isPaused) elapsed=System.currentTimeMillis()-startMs } } }
     DisposableEffect(hasPermission, isTracking, isPaused) {
-        if(!isTracking || isPaused || hasPermission || serviceTracking) { onDispose{}; return@DisposableEffect onDispose{} }
+        if(isTracking || isPaused || hasPermission || serviceTracking) { onDispose{}; return@DisposableEffect onDispose{} }
         val lm = context.getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager
         val listener = LocationListener { loc: Location -> val p=LatLng(loc.latitude, loc.longitude); localPoints.add(p); localDistance=totalDistanceKm(localPoints) }
         try{ lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,3000L,2f,listener); lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,3000L,5f,listener)}catch(_:Exception){}
@@ -145,6 +176,14 @@ fun MapScreen() {
         if(Build.VERSION.SDK_INT>=33 && !hasNotif){ notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS); return }
         val intent = Intent(context, GpsTrackingService::class.java).apply{ this.action=action }
         try{ ContextCompat.startForegroundService(context,intent)}catch(_:Exception){ context.startService(intent)}
+    }
+    val mapView = rememberMapViewWithLifecycle()
+    LaunchedEffect(points, isTracking) {
+        if(points.isEmpty()) return@LaunchedEffect
+        val last = points.last()
+        val gp = GeoPoint(last.latitude, last.longitude)
+        mapView.controller.animateTo(gp)
+        if(points.size==1) mapView.controller.setZoom(16.0)
     }
     Column(modifier = Modifier.fillMaxSize()){
         TabRow(selectedTabIndex = selectedTab, containerColor = MaterialTheme.colorScheme.surface){
@@ -159,15 +198,47 @@ fun MapScreen() {
             if(!hasActivity){ item{ PermissionCard(title=stringResource(R.string.map_permission_act_title), body=stringResource(R.string.map_permission_act_body), action=stringResource(R.string.activity_permission_grant), onClick={ actLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)})}}
             item{
                 Card(shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)){
-                    Box(modifier = Modifier.fillMaxWidth().height(280.dp).clip(RoundedCornerShape(24.dp)).background(Color(0xFFE8F5E9)), contentAlignment = Alignment.Center){
-                        AndroidView(factory = { ctx -> android.view.View(ctx).apply{ setBackgroundColor(android.graphics.Color.parseColor("#C8E6C9")) } }, modifier = Modifier.fillMaxSize())
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            val w = size.width; val h = size.height; val grid = Color(0x1A000000)
-                            for (i in 1..3) { drawLine(grid, Offset(0f, h * i / 4f), Offset(w, h * i / 4f), strokeWidth = 1f); drawLine(grid, Offset(w * i / 4f, 0f), Offset(w * i / 4f, h), strokeWidth = 1f) }
-                        }
-                        TrailCanvas(points = points, isTracking = isTracking, modifier = Modifier.fillMaxSize())
+                    Box(modifier = Modifier.fillMaxWidth().height(300.dp).clip(RoundedCornerShape(24.dp)), contentAlignment = Alignment.Center){
+                        AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize(), update = { mv ->
+                            mv.overlays.removeAll { it is Polyline || it is Marker }
+                            if(points.isNotEmpty()){
+                                val geoPoints = points.map { GeoPoint(it.latitude, it.longitude) }
+                                val polyline = Polyline().apply {
+                                    setPoints(geoPoints)
+                                    outlinePaint.color = android.graphics.Color.parseColor("#2E7D32")
+                                    outlinePaint.strokeWidth = 10f
+                                }
+                                mv.overlays.add(polyline)
+                                val whiteLine = Polyline().apply {
+                                    setPoints(geoPoints)
+                                    outlinePaint.color = android.graphics.Color.WHITE
+                                    outlinePaint.strokeWidth = 3f
+                                }
+                                mv.overlays.add(whiteLine)
+                                val start = Marker(mv).apply {
+                                    position = geoPoints.first()
+                                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                    icon = ContextCompat.getDrawable(context, R.drawable.filiz_sprout)?.apply { setBounds(0,0,48,48) }
+                                    title = "Start"
+                                }
+                                mv.overlays.add(start)
+                                if(geoPoints.size>1){
+                                    val end = Marker(mv).apply {
+                                        position = geoPoints.last()
+                                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                        icon = ContextCompat.getDrawable(context, R.drawable.filiz_tree)?.apply { setBounds(0,0,48,48) }
+                                        title = "Now"
+                                    }
+                                    mv.overlays.add(end)
+                                }
+                                mv.invalidate()
+                            } else {
+                                mv.overlays.clear()
+                                mv.invalidate()
+                            }
+                        })
                         if(points.isEmpty()){
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp).padding(top=8.dp)){
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)){
                                 Box(contentAlignment = Alignment.Center, modifier = Modifier.size(88.dp)) {
                                     if (!reduceMotion) {
                                         val inf = rememberInfiniteTransition(label="mapPulse")
@@ -177,15 +248,10 @@ fun MapScreen() {
                                     Image(painter = painterResource(R.drawable.filiz_sprout), contentDescription = null, modifier = Modifier.size(64.dp))
                                     Box(modifier = Modifier.align(Alignment.TopEnd).size(12.dp).clip(CircleShape).background(Color.White))
                                     Box(modifier = Modifier.align(Alignment.TopEnd).size(8.dp).clip(CircleShape).background(Green500))
-                                    if (!reduceMotion) {
-                                        val inf2 = rememberInfiniteTransition(label="dot2")
-                                        val p2 by inf2.animateFloat(initialValue=0.7f, targetValue=1.15f, animationSpec=infiniteRepeatable(tween(700), RepeatMode.Reverse), label="p2")
-                                        Box(modifier = Modifier.align(Alignment.Center).size(4.dp).scale(p2).clip(CircleShape).background(Color.White.copy(alpha=0.6f)))
-                                    }
                                 }
                                 Text(text = "Filiz is ready 🌱", style = MaterialTheme.typography.titleMedium, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false, modifier=Modifier.widthIn(max=200.dp))
                                 ConstrainedText(text = stringResource(R.string.map_osm_attribution), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top=4.dp).widthIn(max=240.dp))
-                                Text(text = "Grid lines show your future trail ✨", style = MaterialTheme.typography.labelSmall, color=MaterialTheme.colorScheme.onSurfaceVariant, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false, modifier=Modifier.padding(top=2.dp).widthIn(max=240.dp))
+                                Text(text = "Pan & zoom — OSM tiles live ✨", style = MaterialTheme.typography.labelSmall, color=MaterialTheme.colorScheme.onSurfaceVariant, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false, modifier=Modifier.padding(top=2.dp).widthIn(max=240.dp))
                                 if(!hasPermission){
                                     val permInter = remember { MutableInteractionSource() }
                                     val permPressed by permInter.collectIsPressedAsState()
@@ -280,46 +346,6 @@ private fun StatOverlayCard(title:String, value:String, modifier:Modifier=Modifi
         Column(modifier=Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(4.dp), horizontalAlignment=Alignment.CenterHorizontally){
             Text(text=title, style=MaterialTheme.typography.labelMedium, color=MaterialTheme.colorScheme.onSurfaceVariant, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false)
             ConstrainedText(text=value, style=MaterialTheme.typography.titleMedium, maxLines=1)
-        }
-    }
-}
-
-@Composable
-private fun TrailCanvas(points:List<LatLng>, isTracking:Boolean, modifier:Modifier=Modifier){
-    if(points.isEmpty()) return
-    val progress by animateFloatAsState(targetValue = 1f, animationSpec = GreenStepMotion.expressiveSpringSpec(), label="trail")
-    val infinite = rememberInfiniteTransition(label="pulse")
-    val pulse by infinite.animateFloat(initialValue=0.7f, targetValue=1.3f, animationSpec=infiniteRepeatable(animation=tween(900), repeatMode=RepeatMode.Reverse), label="pulse")
-    val zoom by infinite.animateFloat(initialValue=1f, targetValue=1.02f, animationSpec=infiniteRepeatable(animation=tween(2200), repeatMode=RepeatMode.Reverse), label="zoom")
-    Canvas(modifier = modifier.scale(zoom)){
-        val w = size.width; val h = size.height
-        val minLat = points.minOf{it.latitude}; val maxLat = points.maxOf{it.latitude}
-        val minLng = points.minOf{it.longitude}; val maxLng = points.maxOf{it.longitude}
-        val padLat = max((maxLat-minLat)*0.2, 0.0005); val padLng = max((maxLng-minLng)*0.2, 0.0005)
-        val bMinLat = minLat-padLat; val bMaxLat = maxLat+padLat; val bMinLng = minLng-padLng; val bMaxLng = maxLng+padLng
-        val latRange = max(bMaxLat-bMinLat, 0.0001); val lngRange = max(bMaxLng-bMinLng, 0.0001)
-        fun toOffset(p:LatLng): Offset { val x = ((p.longitude-bMinLng)/lngRange*w).toFloat(); val y = ((bMaxLat-p.latitude)/latRange*h).toFloat(); return Offset(x,y) }
-        val gridCol = Color(0x33000000)
-        for(i in 1..3){ drawLine(gridCol, Offset(0f,h*i/4f), Offset(w,h*i/4f), strokeWidth=1f); drawLine(gridCol, Offset(w*i/4f,0f), Offset(w*i/4f,h), strokeWidth=1f) }
-        if(points.size>=2){
-            val path = Path()
-            val first = toOffset(points[0]); path.moveTo(first.x, first.y)
-            for(i in 1 until points.size) { val o = toOffset(points[i]); path.lineTo(o.x,o.y) }
-            drawPath(path, color=Color(0xFF2E7D32), style=Stroke(width=10f, cap=StrokeCap.Round, join=StrokeJoin.Round))
-            drawPath(path, color=Color.White, style=Stroke(width=3f, cap=StrokeCap.Round, join=StrokeJoin.Round))
-            val visibleCount = (points.size*progress).toInt().coerceIn(1, points.size)
-            if(visibleCount>=2){
-                val p2 = Path(); val f2 = toOffset(points[0]); p2.moveTo(f2.x,f2.y); for(i in 1 until visibleCount){ val o=toOffset(points[i]); p2.lineTo(o.x,o.y) }
-                drawPath(p2, color=Green500, style=Stroke(width=6f, cap=StrokeCap.Round, join=StrokeJoin.Round))
-            }
-        }
-        val start = toOffset(points.first()); drawCircle(Color.White, radius=18f, center=start); drawCircle(Green500, radius=12f, center=start)
-        if(points.size>1){ val end = toOffset(points.last()); drawCircle(Color.White, radius=20f*pulse, center=end); drawCircle(Color(0xFF1B5E20), radius=10f*pulse, center=end); drawCircle(Color.White.copy(alpha=0.35f), radius=28f*pulse, center=end) }
-    }
-    if(points.isNotEmpty()){
-        Box(modifier=Modifier.fillMaxSize()){
-            val start = points.first()
-            Box(modifier=Modifier.align(Alignment.TopStart).padding(18.dp).size(28.dp).clip(RoundedCornerShape(8.dp)).background(Color.White), contentAlignment=Alignment.Center){ androidx.compose.foundation.Image(painter=painterResource(R.drawable.filiz_sprout), contentDescription=null, modifier=Modifier.size(20.dp)) }
         }
     }
 }

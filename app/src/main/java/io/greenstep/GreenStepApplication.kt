@@ -5,11 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import androidx.room.Room
 import io.greenstep.data.day.GreenStepDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.osmdroid.config.Configuration
 import java.time.LocalDate
 
 class GreenStepApplication : Application() {
@@ -21,7 +23,18 @@ class GreenStepApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         greenStepDatabase = GreenStepDatabase.getDatabase(this)
+        initOsmdroid()
         registerMidnightTimer()
+    }
+
+    private fun initOsmdroid() {
+        try {
+            val prefs: SharedPreferences = getSharedPreferences("osmdroid", MODE_PRIVATE)
+            Configuration.getInstance().load(this, prefs)
+            Configuration.getInstance().userAgentValue = packageName
+            Configuration.getInstance().osmdroidBasePath = cacheDir
+            Configuration.getInstance().osmdroidTileCache = java.io.File(cacheDir, "osmdroid")
+        } catch (_: Exception) {}
     }
 
     private fun registerMidnightTimer() {
