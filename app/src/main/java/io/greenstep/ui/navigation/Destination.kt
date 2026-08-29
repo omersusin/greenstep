@@ -3,8 +3,9 @@ package io.greenstep.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.DirectionsRun
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -37,11 +38,17 @@ enum class Destination(
         labelRes = io.greenstep.R.string.nav_insights,
         icon = Icons.Outlined.BarChart,
     ),
+    Map(
+        route = "map",
+        labelRes = io.greenstep.R.string.nav_map,
+        icon = Icons.Outlined.Map,
+    ),
 }
 
 val BottomBarDestinations: List<Destination> = listOf(
     Destination.Home,
     Destination.Activity,
+    Destination.Map,
     Destination.History,
     Destination.Insights,
 )

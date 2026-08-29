@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">Verlauf</string>
+    <string name="history_heatmap_title">Wochen-Heatmap</string>
+    <string name="history_heatmap_desc">7 × 5 Kalender — die Farbintensität zeigt die Schrittzahl jedes Tages der letzten 35 Tage.</string>
+    <string name="history_empty_title">Noch kein Verlauf — Filiz schläft noch tief und fest und wartet auf deinen ersten Spaziergang</string>
+    <string name="history_empty_body">Beginne zu gehen und deine täglichen Schritte erscheinen hier. Filiz wacht auf, sobald der erste Tag aufgezeichnet wurde und begleitet dich danach.</string>
+    <string name="insights_title">Erkenntnisse</string>
+    <string name="insights_trend_title">Schritttrend der letzten vierzehn Tage mit sehr langem Titel zum Testen der Ellipsis</string>
+    <string name="insights_trend_desc">Deine Schritte der letzten 14 Tage — die Sparkline zeigt auf einen Blick, wie sich deine Aktivität entwickelt hat.</string>
+    <string name="insights_summary_today">Heute und alle bisherigen Schritte dieses Tages inklusive Bonus</string>
+    <string name="insights_summary_weekly_avg">Wochendurchschnitt über sieben Tage berechnet</string>
+    <string name="insights_summary_best_day">Bester Tag mit der höchsten Schrittzahl seit Aufzeichnungsbeginn</string>
+    <string name="insights_heatmap_title">Aktivitäts-Heatmap</string>
+    <string name="activity_title">Aktivität</string>
+    <string name="activity_permission_title">Standort für GPS-Tracking erforderlich — sehr langer Titel, der abgeschnitten werden muss</string>
+    <string name="activity_permission_body">GreenStep nutzt deinen Standort nur während eines aktiven Workouts, um deine Route zu zeichnen und Distanz sowie Tempo zu berechnen. Keine Daten verlassen dein Gerät.</string>
+</resources>

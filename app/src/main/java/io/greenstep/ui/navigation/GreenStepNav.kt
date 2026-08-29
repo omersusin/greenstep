@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -20,6 +21,7 @@ import io.greenstep.ui.activity.ActivityScreen
 import io.greenstep.ui.history.HistoryScreen
 import io.greenstep.ui.home.HomeScreen
 import io.greenstep.ui.insights.InsightsScreen
+import io.greenstep.ui.map.MapScreen
 
 @Composable
 fun GreenStepNav() {
@@ -52,7 +54,14 @@ fun GreenStepNav() {
                                 contentDescription = stringResource(dest.labelRes),
                             )
                         },
-                        label = { Text(stringResource(dest.labelRes)) },
+                        label = {
+                            Text(
+                                text = stringResource(dest.labelRes),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                softWrap = false,
+                            )
+                        },
                     )
                 }
             }
@@ -65,6 +74,7 @@ fun GreenStepNav() {
         ) {
             composable(Destination.Home.route)      { HomeScreen() }
             composable(Destination.Activity.route)  { ActivityScreen() }
+            composable(Destination.Map.route)       { MapScreen() }
             composable(Destination.History.route)   { HistoryScreen() }
             composable(Destination.Insights.route)  { InsightsScreen() }
         }

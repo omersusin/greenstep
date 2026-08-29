@@ -1,24 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">GreenStep</string>
-
     <string name="nav_home">Home</string>
     <string name="nav_activity">Activity</string>
     <string name="nav_history">History</string>
     <string name="nav_insights">Insights</string>
-
+    <string name="nav_map">Map</string>
     <string name="filiz_dialog_title">Filiz</string>
     <string name="home_welcome_sprout">Hello, sprout. Filiz is waking up.</string>
     <string name="home_skeleton_loading">Wiring up Filiz…</string>
-
     <string name="activity_coming_soon">GPS workouts arrive in Phase 3</string>
     <string name="activity_subtitle">For now, every step you take still counts toward your daily goal.</string>
-
     <string name="history_coming_soon">Daily history arrives in Phase 2</string>
     <string name="history_subtitle">Once you have a week of data, you\'ll see trends here.</string>
-
     <string name="insights_coming_soon">The insights engine grows in Phase 2</string>
     <string name="insights_subtitle">It will read your data on-device and surface patterns, completely offline.</string>
-
+    <string name="map_start">Start</string>
+    <string name="map_pause">Pause</string>
+    <string name="map_resume">Resume</string>
+    <string name="map_stop">Stop</string>
+    <string name="map_distance">Distance: %1$s km</string>
+    <string name="map_grant_permission">Grant location</string>
+    <string name="map_osm_attribution">© OpenStreetMap contributors</string>
+    <string name="map_tracking_title">Tracking route</string>
+    <string name="map_tracking_text">GPS tracking active</string>
+    <string name="history_heatmap_title">Activity Heatmap</string>
+    <string name="history_heatmap_desc">Last 5 weeks — darker green means more steps.</string>
+    <string name="history_day_steps">%1$d steps</string>
+    <string name="history_empty_title">No history yet</string>
+    <string name="history_empty_body">Start walking and your daily steps will appear here. Filiz is waiting!</string>
+    <string name="insights_summary_today">Today</string>
+    <string name="insights_summary_weekly_avg">Weekly avg</string>
+    <string name="insights_summary_best_day">Best day</string>
+    <string name="insights_trend_title">14-Day Trend</string>
+    <string name="insights_trend_desc">Your step count over the last two weeks.</string>
+    <string name="insights_empty">Not enough data yet — keep walking!</string>
+    <string name="insights_heatmap_title">Consistency</string>
+    <string name="activity_permission_title">Location permission needed</string>
+    <string name="activity_permission_body">Allow location to track distance, pace and route on the map. You can still count steps without it.</string>
+    <string name="activity_permission_grant">Grant permission</string>
+    <string name="activity_map_placeholder">Map preview — GPS route will appear here</string>
+    <string name="activity_stat_distance">Distance</string>
+    <string name="activity_stat_distance_value">%1$.2f km</string>
+    <string name="activity_stat_pace">Pace</string>
+    <string name="activity_stat_pace_value">%1$s /km</string>
+    <string name="activity_stat_calories">Calories</string>
+    <string name="activity_stat_calories_value">%1$d kcal</string>
+    <string name="activity_start">Start</string>
+    <string name="activity_stop">Stop</string>
+    <string name="ach_first_step">First Step</string>
+    <string name="ach_streak_3">3-Day Streak</string>
+    <string name="ach_streak_7">Week Warrior</string>
+    <string name="ach_streak_30">Month Master</string>
+    <string name="ach_steps_10k">10K Steps</string>
+    <string name="ach_steps_100k">100K Steps</string>
+    <string name="ach_green_sprout">Green Sprout</string>
+    <string name="ach_green_forest">Green Forest</string>
+    <string name="ach_eco_warrior">Eco Warrior</string>
+    <string name="ach_heart_steps">Heart Steps</string>
+    <string name="ach_zen_master">Zen Master</string>
+    <string name="ach_tree_planter">Tree Planter</string>
+    <string name="shop_title">Shop</string>
+    <string name="shop_balance">Balance: %1$d</string>
+    <string name="shop_price">%1$d coins</string>
+    <string name="shop_buy">Buy</string>
+    <string name="shop_not_enough">Not enough coins</string>
+    <string name="shop_purchased">Purchased!</string>
+    <string name="shop_item_freeze">Streak Freeze</string>
+    <string name="shop_item_freeze_desc">Protect your streak for one missed day.</string>
+    <string name="shop_item_mystery_seed">Mystery Seed</string>
+    <string name="shop_item_mystery_seed_desc">Plant a surprise from Filiz.</string>
+    <string name="shop_item_skin_sprout">Sprout Skin</string>
+    <string name="shop_item_skin_sprout_desc">Fresh green theme.</string>
+    <string name="shop_item_skin_forest">Forest Skin</string>
+    <string name="shop_item_skin_forest_desc">Deep forest vibes.</string>
+    <string name="shop_item_skin_golden">Golden Skin</string>
+    <string name="shop_item_skin_golden_desc">Shine bright.</string>
+    <string name="shop_item_skin_ocean">Ocean Skin</string>
+    <string name="shop_item_skin_ocean_desc">Calm blue waves.</string>
 </resources>

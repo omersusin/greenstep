@@ -50,6 +50,11 @@
             android:exported="false"
             android:foregroundServiceType="health" />
 
+        <service
+            android:name=".service.GpsTrackingService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
     </application>
 
 </manifest>
