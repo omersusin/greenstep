@@ -14,7 +14,7 @@ datastore = "1.2.1"
 work = "2.11.2"
 coroutines = "1.11.0"
 serialization = "1.11.0"
-healthConnect = "1.1.0-alpha14"
+healthConnect = "1.1.0-alpha11"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
