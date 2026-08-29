@@ -136,4 +136,6 @@ object ThemeManager {
 
     fun paceFlow(context: Context): Flow<Float> = context.themeDataStore.data.map { it[PACE_KEY] ?: 1f }
     suspend fun setPace(context: Context, v: Float) { context.themeDataStore.edit { it[PACE_KEY] = v.coerceIn(0.5f, 2f) } }
+
+    suspend fun clearAll(context: Context) { context.themeDataStore.edit { it.clear() } }
 }

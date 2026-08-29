@@ -30,13 +30,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.theme.GreenStepMotion
 import io.greenstep.ui.theme.ThemeManager
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -83,9 +82,9 @@ private fun HistoryDayCard(day: Day, modifier: Modifier = Modifier) {
     val reduce by ThemeManager.reduceMotionFlow(ctx).collectAsState(initial = false)
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
     val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = if (reduce) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "histCard")
-    Card(shape = RoundedCornerShape(24.dp), modifier = modifier.fillMaxWidth().scale(scale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }, interactionSource = interaction) {
+    Card(shape = RoundedCornerShape(24.dp), modifier = modifier.fillMaxWidth().scale(scale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), onClick = { haptic.tick() }, interactionSource = interaction) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(text = day.date.toString(), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.weight(1f).padding(end = 12.dp))
             Text(text = stringResource(R.string.history_day_steps, day.steps), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)

@@ -10,6 +10,7 @@ import io.greenstep.data.day.SettingsCompat
 import io.greenstep.data.streak.Streak
 import io.greenstep.data.streak.StreakStore
 import java.time.LocalDate
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -38,4 +39,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
     val dayFlow: StateFlow<Day> = uiState.map { it.day }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState().day)
+
+    val weeklyDays: StateFlow<List<Day>> = app.currentDate.flatMapLatest { today ->
+        dao.getDays(today.minusDays(6), today)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

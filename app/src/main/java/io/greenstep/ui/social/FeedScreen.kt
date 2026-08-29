@@ -3,6 +3,8 @@ package io.greenstep.ui.social
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +39,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,13 +50,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.greenstep.data.economy.CoinStore
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.theme.GreenStepMotion
+import io.greenstep.ui.theme.ThemeManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -71,7 +76,7 @@ fun FeedScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val coinStore = remember { CoinStore(context) }
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
     val snackbar = remember { SnackbarHostState() }
     val filtered = localPosts.filter {
         val okFilter = when (filter) {
@@ -104,11 +109,9 @@ fun FeedScreen(
                 val bonus = Random.nextInt(2, 7)
                 scope.launch { coinStore.addCoins(bonus) }
                 localPosts = localPosts.map { if (it.id == post.id) it.copy(cheers = it.cheers + 1, clubSupport = true) else it }
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                haptic.success()
                 onCheer(post)
-            }, onShare = {
-                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            })
+            }, onShare = { haptic.tick() })
         }
         item { Spacer(Modifier.height(16.dp)) }
     }
@@ -116,11 +119,19 @@ fun FeedScreen(
 
 @Composable
 private fun FeedPostCard(post: FeedPost, onCheer: () -> Unit, onShare: () -> Unit) {
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
+    val ctx = LocalContext.current
+    val reduceMotion by ThemeManager.reduceMotionFlow(ctx).collectAsState(initial = false)
     var cheered by remember { mutableStateOf(false) }
     var showShareCard by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(targetValue = if (cheered) 1.02f else 1f, animationSpec = GreenStepMotion.expressiveSpringSpec(), label = "cheerScale")
-    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).scale(scale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), shape = RoundedCornerShape(18.dp)) {
+    var sparkle by remember { mutableStateOf(false) }
+    LaunchedEffect(cheered) { if (cheered) { sparkle = true; delay(600); sparkle = false } }
+    val cheerScale by animateFloatAsState(targetValue = if (cheered && !reduceMotion) 1.02f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.expressiveSpring, label = "cheerScale")
+    val pressInteraction = remember { MutableInteractionSource() }
+    val pressed by pressInteraction.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "pressScale")
+    val combinedScale = cheerScale * pressScale * if (sparkle && !reduceMotion) 1.02f else 1f
+    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).scale(combinedScale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), shape = RoundedCornerShape(18.dp)) {
         Column(modifier = Modifier.padding(12.dp).fillMaxWidth()) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary), contentAlignment = Alignment.Center) {
@@ -163,12 +174,15 @@ private fun FeedPostCard(post: FeedPost, onCheer: () -> Unit, onShare: () -> Uni
                     Icon(Icons.Outlined.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.width(4.dp))
+                val cheerInteraction = remember { MutableInteractionSource() }
+                val cheerPressed by cheerInteraction.collectIsPressedAsState()
+                val cheerBtnScale by animateFloatAsState(targetValue = if (cheerPressed) 0.97f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "cheerBtn")
                 Button(onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    haptic.tick()
                     cheered = !cheered
-                    if (cheered) onCheer() else haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                }, colors = if (cheered) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) else ButtonDefaults.buttonColors(), modifier = Modifier.widthIn(max = 150.dp)) {
-                    Text(text = if (cheered) "Cheered! +coins" else "Cheer 🎉", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
+                    if (cheered) onCheer() else haptic.success()
+                }, interactionSource = cheerInteraction, colors = if (cheered) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) else ButtonDefaults.buttonColors(), modifier = Modifier.widthIn(max = 150.dp).scale(cheerBtnScale)) {
+                    Text(text = if (cheered) "Cheered! +coins" else "Cheer 🎉", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.widthIn(max = 120.dp))
                 }
             }
             if (cheered) Text(text = "Variable reward: +${(2..6).random()} bonus coins!", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.fillMaxWidth().padding(top = 2.dp))

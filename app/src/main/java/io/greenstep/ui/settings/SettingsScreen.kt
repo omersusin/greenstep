@@ -44,9 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,6 +54,9 @@ import androidx.compose.ui.unit.dp
 import io.greenstep.GreenStepApplication
 import io.greenstep.R
 import io.greenstep.data.day.DaySettings
+import io.greenstep.data.economy.CoinStore
+import io.greenstep.data.streak.StreakStore
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.theme.GreenStepMotion
 import io.greenstep.ui.theme.ShapeFamily
 import io.greenstep.ui.theme.ThemeChoice
@@ -70,7 +71,7 @@ fun SettingsScreen() {
     val context = LocalContext.current
     val app = context.applicationContext as? GreenStepApplication
     val scope = rememberCoroutineScope()
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
     val themeChoice by ThemeManager.themeChoiceFlow(context).collectAsState(initial = ThemeChoice.AUTO)
     val shapeFamily by ThemeManager.shapeFlow(context).collectAsState(initial = ShapeFamily.Rounded)
     val hapticsEnabled by ThemeManager.hapticsEnabledFlow(context).collectAsState(initial = true)
@@ -85,7 +86,7 @@ fun SettingsScreen() {
     var showClear by remember { mutableStateOf(false) }
     val goalAnimated by animateFloatAsState(targetValue = dailyGoal.toFloat(), animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.expressiveSpring, label = "goalAnim")
 
-    fun doHaptic() { if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+    fun doHaptic() { haptic.tick() }
 
     suspend fun syncDaySettings(update: DaySettings.() -> DaySettings) {
         val db = app?.greenStepDatabase ?: return
@@ -128,7 +129,12 @@ fun SettingsScreen() {
                 Text(text = stringResource(R.string.settings_section_goals), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.fillMaxWidth().widthIn(max = 160.dp))
                 Text(text = stringResource(R.string.settings_daily_goal), style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
                 Text(text = stringResource(R.string.settings_daily_goal_value, goalAnimated.toInt()), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-                Slider(value = dailyGoal.toFloat(), onValueChange = { v -> scope.launch { ThemeManager.setDailyGoal(context, v.toInt()); syncDaySettings { copy(goal = v.toInt()) } } }, valueRange = 1000f..20000f, steps = 18)
+                var lastBucket by remember { mutableStateOf(dailyGoal / 500) }
+                Slider(value = dailyGoal.toFloat(), onValueChange = { v ->
+                    val bucket = v.toInt() / 500
+                    if (bucket != lastBucket) { lastBucket = bucket; if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+                    scope.launch { ThemeManager.setDailyGoal(context, v.toInt()); syncDaySettings { copy(goal = v.toInt()) } }
+                }, valueRange = 1000f..20000f, steps = 37)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SmallNumberField(label = stringResource(R.string.settings_step_length), value = stepLength, onValue = { scope.launch { ThemeManager.setStepLength(context, it); syncDaySettings { copy(stepLengthCm = it) } } }, modifier = Modifier.weight(1f))
                     SmallNumberField(label = stringResource(R.string.settings_height), value = height, onValue = { scope.launch { ThemeManager.setHeight(context, it); syncDaySettings { copy(heightCm = it) } } }, modifier = Modifier.weight(1f))
@@ -167,7 +173,7 @@ fun SettingsScreen() {
                         Text(text = stringResource(R.string.settings_reduce_motion_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.fillMaxWidth().widthIn(max = 160.dp))
                     }
                     val rScale by animateFloatAsState(targetValue = if (reduceMotion) 1f else 0.92f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.expressiveSpring, label = "reduceScale")
-                    Switch(checked = reduceMotion, onCheckedChange = { checked -> haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); scope.launch { ThemeManager.setReduceMotion(context, checked) } }, modifier = Modifier.scale(rScale))
+                    Switch(checked = reduceMotion, onCheckedChange = { checked -> haptic.tick(); scope.launch { ThemeManager.setReduceMotion(context, checked) } }, modifier = Modifier.scale(rScale))
                 }
             }
         }
@@ -230,11 +236,12 @@ fun SettingsScreen() {
         AlertDialog(onDismissRequest = { showClear = false }, title = { Text(text = stringResource(R.string.settings_clear_confirm), maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }, text = { Text(text = stringResource(R.string.settings_clear_desc)) }, confirmButton = { TextButton(onClick = {
             showClear = false
             scope.launch {
-                try {
-                    app?.greenStepDatabase?.clearAllTables()
-                    // recreate default day? not needed
-                } catch (_: Exception) {}
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                try { app?.greenStepDatabase?.clearAllTables() } catch (_: Exception) {}
+                try { ThemeManager.clearAll(context) } catch (_: Exception) {}
+                try { CoinStore(context).clear() } catch (_: Exception) {}
+                try { StreakStore(context).clear() } catch (_: Exception) {}
+                try { context.cacheDir.listFiles()?.forEach { if (it.name.startsWith("greenstep_export")) it.delete() } } catch (_: Exception) {}
+                haptic.success()
                 Toast.makeText(context, context.getString(R.string.settings_cleared), Toast.LENGTH_SHORT).show()
             }
         }) { Text(text = stringResource(R.string.settings_clear_yes)) } }, dismissButton = { TextButton(onClick = { showClear = false }) { Text(text = stringResource(R.string.settings_clear_no)) } })
@@ -254,6 +261,6 @@ private fun PressableCard(content: @Composable () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "cardPress")
-    val haptic = LocalHapticFeedback.current
-    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth().scale(scale), onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }, interactionSource = interaction) { content() }
+    val haptic = rememberHaptics()
+    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth().scale(scale), onClick = { haptic.tick() }, interactionSource = interaction) { content() }
 }

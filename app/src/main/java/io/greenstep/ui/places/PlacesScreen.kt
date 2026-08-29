@@ -41,19 +41,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import io.greenstep.data.economy.CoinStore
 import io.greenstep.data.map.LatLng
 import io.greenstep.data.map.haversineKm
 import io.greenstep.data.streak.StreakStore
 import io.greenstep.ui.components.ConstrainedText
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.theme.Green100
 import io.greenstep.ui.theme.Green500
 import io.greenstep.ui.theme.GreenStepMotion
+import io.greenstep.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -100,10 +102,12 @@ fun PlacesScreen(userLocation: LatLng? = null) {
 
 @Composable
 private fun PlaceCard(place: GreenPlace, distanceKm: Double?, isChecked: Boolean, onCheckIn: () -> Unit) {
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
+    val ctx = LocalContext.current
+    val reduce by ThemeManager.reduceMotionFlow(ctx).collectAsState(initial = false)
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = GreenStepMotion.pressSpring, label = "press")
+    val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = if (reduce) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "press")
     Card(shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().scale(scale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -134,7 +138,7 @@ private fun PlaceCard(place: GreenPlace, distanceKm: Double?, isChecked: Boolean
                     }
                 }
                 Spacer(Modifier.width(8.dp))
-                Button(onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); onCheckIn() }, enabled = !isChecked, interactionSource = interaction, shape = RoundedCornerShape(24.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                Button(onClick = { haptic.tick(); if (!isChecked) haptic.success(); onCheckIn() }, enabled = !isChecked, interactionSource = interaction, shape = RoundedCornerShape(24.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
                     ConstrainedText(text = if(isChecked) "Checked in!" else "Check-in", style = MaterialTheme.typography.labelMedium)
                 }
             }

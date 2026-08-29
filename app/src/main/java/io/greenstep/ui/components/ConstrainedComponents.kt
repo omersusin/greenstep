@@ -23,13 +23,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.theme.GreenStepMotion
 import io.greenstep.ui.theme.LocalMotionScheme
 import io.greenstep.ui.theme.ThemeManager
@@ -155,14 +154,14 @@ fun ConstrainedButton(
         )
     },
 ) {
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val motion = LocalMotionScheme.current
     val spec = if (motion.reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring
     val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = spec, label = "btnScale")
     Button(
-        onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); onClick() },
+        onClick = { haptic.tick(); onClick() },
         modifier = modifier.widthIn(max = 280.dp).scale(scale),
         enabled = enabled,
         interactionSource = interaction,
@@ -176,7 +175,7 @@ fun PressableCardButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val ctx = LocalContext.current
@@ -184,7 +183,7 @@ fun PressableCardButton(
     val spec = if (reduce) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring
     val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = spec, label = "cardBtnScale")
     androidx.compose.material3.Card(
-        onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); onClick() },
+        onClick = { haptic.tick(); onClick() },
         interactionSource = interaction,
         modifier = modifier.scale(scale),
         content = { content() }

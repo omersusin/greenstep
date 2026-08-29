@@ -189,4 +189,19 @@
     <string name="settings_section_about">About</string>
     <string name="settings_about_filiz">Filiz is a tiny seed who loves walks. Made with 💚 in GreenStep.</string>
     <string name="settings_about_version">Version 0.1.0 — offline first, adorable always.</string>
+    <string name="home_share_progress">Share progress</string>
+    <string name="home_share_text">I walked %1$d steps, saved %2$.2f kg CO2 with Filiz 🌱</string>
+    <string name="home_share_chooser">Share via</string>
+    <string name="home_wrapped_title">Weekly Wrapped</string>
+    <string name="home_wrapped_desc">Your last 7 days at a glance.</string>
+    <string name="home_wrapped_total_steps">%1$d steps total</string>
+    <string name="home_wrapped_avg">%1$d avg / day</string>
+    <string name="home_wrapped_co2">%1$.2f kg CO₂ saved</string>
+    <string name="home_wrapped_best">Best: %1$d</string>
+    <string name="home_impact_title">Share your impact</string>
+    <string name="home_impact_desc">Let friends see your green steps.</string>
+    <string name="achievements_title">Achievements</string>
+    <string name="achievements_unlocked">%1$d / %2$d unlocked</string>
+    <string name="ach_locked">Locked</string>
+    <string name="ach_unlocked">Unlocked</string>
 </resources>

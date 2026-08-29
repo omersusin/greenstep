@@ -92,4 +92,6 @@ class StreakStore(private val context: Context) {
             else prefs.remove(Keys.LastHitDate)
         }
     }
+
+    suspend fun clear() { context.streakDataStore.edit { it.clear() } }
 }

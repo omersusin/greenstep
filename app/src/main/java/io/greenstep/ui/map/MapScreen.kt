@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -67,9 +68,11 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,10 +89,11 @@ import io.greenstep.data.map.formatPace
 import io.greenstep.data.map.totalDistanceKm
 import io.greenstep.service.GpsTrackingService
 import io.greenstep.ui.components.ConstrainedText
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.places.PlacesScreen
-import io.greenstep.ui.theme.Green100
 import io.greenstep.ui.theme.Green500
 import io.greenstep.ui.theme.GreenStepMotion
+import io.greenstep.ui.theme.ThemeManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -99,7 +103,8 @@ import kotlin.math.min
 @Composable
 fun MapScreen() {
     val context = LocalContext.current
-    val haptic = LocalHapticFeedback.current
+    val haptic = rememberHaptics()
+    val reduceMotion by ThemeManager.reduceMotionFlow(context).collectAsState(initial = false)
     var selectedTab by remember { mutableStateOf(0) }
     var hasFine by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) }
     var hasCoarse by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) }
@@ -143,8 +148,8 @@ fun MapScreen() {
     }
     Column(modifier = Modifier.fillMaxSize()){
         TabRow(selectedTabIndex = selectedTab, containerColor = MaterialTheme.colorScheme.surface){
-            Tab(selected = selectedTab==0, onClick = {selectedTab=0; haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)}, text={ConstrainedText(text=stringResource(R.string.map_tab_map), style=MaterialTheme.typography.labelLarge)})
-            Tab(selected = selectedTab==1, onClick = {selectedTab=1; haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)}, text={ConstrainedText(text=stringResource(R.string.map_tab_places), style=MaterialTheme.typography.labelLarge)})
+            Tab(selected = selectedTab==0, onClick = {selectedTab=0; haptic.tick()}, text={ConstrainedText(text=stringResource(R.string.map_tab_map), style=MaterialTheme.typography.labelLarge)})
+            Tab(selected = selectedTab==1, onClick = {selectedTab=1; haptic.tick()}, text={ConstrainedText(text=stringResource(R.string.map_tab_places), style=MaterialTheme.typography.labelLarge)})
         }
         if(selectedTab==1){ PlacesScreen(userLocation = points.lastOrNull()) ; return@Column}
         LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)){
@@ -156,12 +161,37 @@ fun MapScreen() {
                 Card(shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)){
                     Box(modifier = Modifier.fillMaxWidth().height(280.dp).clip(RoundedCornerShape(24.dp)).background(Color(0xFFE8F5E9)), contentAlignment = Alignment.Center){
                         AndroidView(factory = { ctx -> android.view.View(ctx).apply{ setBackgroundColor(android.graphics.Color.parseColor("#C8E6C9")) } }, modifier = Modifier.fillMaxSize())
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val w = size.width; val h = size.height; val grid = Color(0x1A000000)
+                            for (i in 1..3) { drawLine(grid, Offset(0f, h * i / 4f), Offset(w, h * i / 4f), strokeWidth = 1f); drawLine(grid, Offset(w * i / 4f, 0f), Offset(w * i / 4f, h), strokeWidth = 1f) }
+                        }
                         TrailCanvas(points = points, isTracking = isTracking, modifier = Modifier.fillMaxSize())
                         if(points.isEmpty()){
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)){
-                                Text(text = "OSM Map Placeholder", style = MaterialTheme.typography.titleMedium)
-                                ConstrainedText(text = stringResource(R.string.map_osm_attribution), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top=4.dp))
-                                if(!hasPermission){ OutlinedButton(onClick = { fineLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)}, modifier = Modifier.padding(top=8.dp)){ ConstrainedText(text=stringResource(R.string.map_grant_permission)) } }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp).padding(top=8.dp)){
+                                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(88.dp)) {
+                                    if (!reduceMotion) {
+                                        val inf = rememberInfiniteTransition(label="mapPulse")
+                                        val s by inf.animateFloat(initialValue=0.85f, targetValue=1.2f, animationSpec=infiniteRepeatable(tween(900), RepeatMode.Reverse), label="s")
+                                        Box(modifier = Modifier.size(72.dp).scale(s).clip(CircleShape).background(Green500.copy(alpha=0.16f)))
+                                    }
+                                    Image(painter = painterResource(R.drawable.filiz_sprout), contentDescription = null, modifier = Modifier.size(64.dp))
+                                    Box(modifier = Modifier.align(Alignment.TopEnd).size(12.dp).clip(CircleShape).background(Color.White))
+                                    Box(modifier = Modifier.align(Alignment.TopEnd).size(8.dp).clip(CircleShape).background(Green500))
+                                    if (!reduceMotion) {
+                                        val inf2 = rememberInfiniteTransition(label="dot2")
+                                        val p2 by inf2.animateFloat(initialValue=0.7f, targetValue=1.15f, animationSpec=infiniteRepeatable(tween(700), RepeatMode.Reverse), label="p2")
+                                        Box(modifier = Modifier.align(Alignment.Center).size(4.dp).scale(p2).clip(CircleShape).background(Color.White.copy(alpha=0.6f)))
+                                    }
+                                }
+                                Text(text = "Filiz is ready 🌱", style = MaterialTheme.typography.titleMedium, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false, modifier=Modifier.widthIn(max=200.dp))
+                                ConstrainedText(text = stringResource(R.string.map_osm_attribution), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top=4.dp).widthIn(max=240.dp))
+                                Text(text = "Grid lines show your future trail ✨", style = MaterialTheme.typography.labelSmall, color=MaterialTheme.colorScheme.onSurfaceVariant, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false, modifier=Modifier.padding(top=2.dp).widthIn(max=240.dp))
+                                if(!hasPermission){
+                                    val permInter = remember { MutableInteractionSource() }
+                                    val permPressed by permInter.collectIsPressedAsState()
+                                    val permScale by animateFloatAsState(targetValue = if(permPressed) 0.97f else 1f, animationSpec = if(reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label="perm")
+                                    OutlinedButton(onClick = { haptic.tick(); fineLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)}, interactionSource = permInter, modifier = Modifier.padding(top=8.dp).scale(permScale).widthIn(max=200.dp), shape = RoundedCornerShape(24.dp)){ ConstrainedText(text=stringResource(R.string.map_grant_permission)) }
+                                }
                             }
                         }
                         if(confettiTick>0){ ConfettiOverlay(tick=confettiTick, modifier = Modifier.fillMaxSize()) }
@@ -181,22 +211,29 @@ fun MapScreen() {
             item{
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)){
                     if(!isTracking){
+                        val startInter = remember { MutableInteractionSource() }
+                        val startPressed by startInter.collectIsPressedAsState()
+                        val startScale by animateFloatAsState(targetValue = if(startPressed) 0.97f else 1f, animationSpec = if(reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label="start")
                         Button(onClick = {
+                            haptic.tick()
                             if(!hasPermission){ fineLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION); return@Button }
                             if(Build.VERSION.SDK_INT>=33 && !hasNotif){ notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)}
                             localPoints.clear(); localDistance=0.0; elapsed=0L; startMs=System.currentTimeMillis()
                             ensureNotifAndStart(GpsTrackingService.ACTION_START)
-                        }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(24.dp)){
+                        }, interactionSource = startInter, modifier = Modifier.weight(1f).scale(startScale).widthIn(max=200.dp), shape = RoundedCornerShape(24.dp)){
                             Icon(Icons.Outlined.PlayArrow, contentDescription=null); Spacer(Modifier.width(6.dp)); ConstrainedText(text=stringResource(R.string.map_start))
                         }
                     } else {
-                        OutlinedButton(onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            if(isPaused) ensureNotifAndStart(GpsTrackingService.ACTION_RESUME) else ensureNotifAndStart(GpsTrackingService.ACTION_PAUSE)
-                        }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(24.dp)){
+                        val pauseInter = remember { MutableInteractionSource() }
+                        val pausePressed by pauseInter.collectIsPressedAsState()
+                        val pauseScale by animateFloatAsState(targetValue = if(pausePressed) 0.97f else 1f, animationSpec = if(reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label="pause")
+                        OutlinedButton(onClick = { haptic.tick(); if(isPaused) ensureNotifAndStart(GpsTrackingService.ACTION_RESUME) else ensureNotifAndStart(GpsTrackingService.ACTION_PAUSE) }, interactionSource = pauseInter, modifier = Modifier.weight(1f).scale(pauseScale).widthIn(max=200.dp), shape = RoundedCornerShape(24.dp)){
                             Icon(if(isPaused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause, contentDescription=null); Spacer(Modifier.width(6.dp)); ConstrainedText(text=stringResource(if(isPaused) R.string.map_resume else R.string.map_pause))
                         }
-                        Button(onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); ensureNotifAndStart(GpsTrackingService.ACTION_STOP); confettiTick++ }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(24.dp)){
+                        val stopInter = remember { MutableInteractionSource() }
+                        val stopPressed by stopInter.collectIsPressedAsState()
+                        val stopScale by animateFloatAsState(targetValue = if(stopPressed) 0.97f else 1f, animationSpec = if(reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label="stop")
+                        Button(onClick = { haptic.success(); ensureNotifAndStart(GpsTrackingService.ACTION_STOP); confettiTick++ }, interactionSource = stopInter, modifier = Modifier.weight(1f).scale(stopScale).widthIn(max=200.dp), shape = RoundedCornerShape(24.dp)){
                             Icon(Icons.Outlined.Stop, contentDescription=null); Spacer(Modifier.width(6.dp)); ConstrainedText(text=stringResource(R.string.map_stop))
                         }
                     }
@@ -222,11 +259,17 @@ fun MapScreen() {
 
 @Composable
 private fun PermissionCard(title:String, body:String, action:String, onClick:()->Unit){
+    val haptic = rememberHaptics()
+    val ctx = LocalContext.current
+    val reduce by ThemeManager.reduceMotionFlow(ctx).collectAsState(initial = false)
+    val inter = remember { MutableInteractionSource() }
+    val pressed by inter.collectIsPressedAsState()
+    val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = if (reduce) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "permCard")
     Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth()){
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)){
             ConstrainedText(text=title, style=MaterialTheme.typography.titleSmall, modifier=Modifier.fillMaxWidth())
             ConstrainedText(text=body, style=MaterialTheme.typography.bodySmall, maxLines=4, softWrap=true, overflow=TextOverflow.Ellipsis, modifier=Modifier.fillMaxWidth())
-            OutlinedButton(onClick=onClick, shape=RoundedCornerShape(24.dp)){ ConstrainedText(text=action) }
+            OutlinedButton(onClick={ haptic.tick(); onClick() }, interactionSource = inter, modifier = Modifier.scale(scale).widthIn(max=200.dp), shape=RoundedCornerShape(24.dp)){ ConstrainedText(text=action) }
         }
     }
 }

@@ -42,6 +42,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,16 +55,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.greenstep.R
 import io.greenstep.data.economy.CoinStore
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.theme.GreenStepMotion
+import io.greenstep.ui.theme.ThemeManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -131,12 +133,16 @@ fun ShopScreen(coinStore: CoinStore? = null) {
                 }
             }
             if (lastLoot != null) {
-                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp), colors = CardDefaults.cardColors(containerColor = lastLoot!!.first.color.copy(alpha = 0.15f)), shape = RoundedCornerShape(14.dp)) {
+                val reduceMotion by ThemeManager.reduceMotionFlow(LocalContext.current).collectAsState(initial = false)
+                var sparkle by remember(lastLoot) { mutableStateOf(true) }
+                LaunchedEffect(lastLoot) { sparkle = true; delay(700); sparkle = false }
+                val lootScale by animateFloatAsState(targetValue = if (sparkle && !reduceMotion) 1.02f else 1f, animationSpec = GreenStepMotion.expressiveSpringSpec(), label = "lootSparkle")
+                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).scale(lootScale), colors = CardDefaults.cardColors(containerColor = lastLoot!!.first.color.copy(alpha = 0.15f)), shape = RoundedCornerShape(14.dp)) {
                     Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🎲", style = MaterialTheme.typography.titleMedium)
+                        Text(text = if (sparkle) "✨🎲✨" else "🎲", style = MaterialTheme.typography.titleMedium, modifier = Modifier.widthIn(max = 64.dp))
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
-                            Text(text = "Loot: ${lastLoot!!.first.label} +${lastLoot!!.second} coins!", style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
-                            Text(text = "Variable reward — Filiz is generous 🌱", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(text = "Loot: ${lastLoot!!.first.label} +${lastLoot!!.second} coins!", style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.widthIn(max = 260.dp))
+                            Text(text = "Variable reward — Filiz is generous 🌱", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.widthIn(max = 260.dp))
                         }
                     }
                 }
@@ -156,25 +162,25 @@ fun ShopScreen(coinStore: CoinStore? = null) {
                             Text(text = stringResource(item.descRes).let { if (item.id == "loot_box") "Variable reward —rarity roll!" else it }, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp).fillMaxWidth())
                             Text(text = stringResource(R.string.shop_price, item.price), style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 6.dp))
                             if (isOwned) Text(text = "Owned ✓", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
+                            val reduceMotion by ThemeManager.reduceMotionFlow(LocalContext.current).collectAsState(initial = false)
+                            val spec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring
                             val btnInteraction = remember { MutableInteractionSource() }
                             val pressed by btnInteraction.collectIsPressedAsState()
-                            val btnScale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = GreenStepMotion.pressSpring, label = "buyScale")
-                            val haptic = LocalHapticFeedback.current
+                            val btnScale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = spec, label = "buyScale")
+                            val haptic = rememberHaptics()
                             Button(
                                 onClick = {
                                     if (!canAfford) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        vibrateError(context)
+                                        haptic.error()
                                         scope.launch { snackbarHostState.showSnackbar(notEnough) }
                                         return@Button
                                     }
                                     if (isOwned) return@Button
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    haptic.tick()
                                     scope.launch {
                                         val ok = store.spendCoins(item.price)
                                         if (!ok) {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            vibrateError(context)
+                                            haptic.error()
                                             snackbarHostState.showSnackbar(notEnough)
                                         } else {
                                             if (item.id == "mystery_seed" || item.id == "loot_box") {
@@ -183,11 +189,11 @@ fun ShopScreen(coinStore: CoinStore? = null) {
                                                 store.addCoins(bonus)
                                                 lastLoot = rarity to bonus
                                                 snackbarHostState.showSnackbar("🎁 ${rarity.label} reward +$bonus coins!")
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                haptic.success()
                                             } else {
                                                 owned = owned + item.id
                                                 snackbarHostState.showSnackbar(purchased)
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                haptic.success()
                                             }
                                         }
                                     }
@@ -195,9 +201,9 @@ fun ShopScreen(coinStore: CoinStore? = null) {
                                 interactionSource = btnInteraction,
                                 enabled = enabled || (!canAfford),
                                 colors = if (!enabled && !canAfford) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant) else if (isOwned) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else ButtonDefaults.buttonColors(),
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).scale(btnScale)
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).scale(btnScale).widthIn(max = 200.dp)
                             ) {
-                                Text(text = when { isOwned -> "Owned"; !canAfford -> "Need coins"; item.id == "loot_box" || item.id == "mystery_seed" -> "Open 🎲"; else -> stringResource(R.string.shop_buy) }, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
+                                Text(text = when { isOwned -> "Owned"; !canAfford -> "Need coins"; item.id == "loot_box" || item.id == "mystery_seed" -> "Open 🎲"; else -> stringResource(R.string.shop_buy) }, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.widthIn(max = 140.dp))
                             }
                         }
                     }

@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import android.content.Intent
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -27,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -46,9 +49,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.greenstep.R
 import io.greenstep.ui.components.FilizMascot
 import io.greenstep.ui.components.StreakBadge
 import io.greenstep.ui.components.rememberHaptics
@@ -122,6 +127,8 @@ fun HomeScreen(onShopClick: () -> Unit = {}, onChallengesClick: () -> Unit = {},
                     Text(text = "Shop", maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
+            ShareImpactCard(steps = day.steps, co2 = day.carbonSaved)
+            WeeklyWrappedCard(viewModel = viewModel)
             Spacer(modifier = Modifier.height(4.dp))
         }
     }
@@ -187,3 +194,52 @@ private fun ConfettiBurst(modifier: Modifier = Modifier) {
 }
 
 private data class Particle(val xFrac: Float, val yOffset: Float, val size: Float, val color: Color, val speed: Float, val isCircle: Boolean)
+
+@Composable
+private fun ShareImpactCard(steps: Int, co2: Float) {
+    val context = LocalContext.current
+    val haptics = rememberHaptics()
+    val shareText = stringResource(R.string.home_share_text, steps, co2)
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                Text(text = stringResource(R.string.home_impact_title), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = stringResource(R.string.home_impact_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            val inter = remember { MutableInteractionSource() }
+            val pressed by inter.collectIsPressedAsState()
+            val scale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = GreenStepMotion.pressSpring, label = "shareScale")
+            Button(onClick = {
+                haptics.success()
+                val intent = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, shareText) }
+                context.startActivity(Intent.createChooser(intent, context.getString(R.string.home_share_chooser)))
+            }, interactionSource = inter, modifier = Modifier.scale(scale)) {
+                Text(text = stringResource(R.string.home_share_progress), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyWrappedCard(viewModel: HomeViewModel) {
+    val weekly by viewModel.weeklyDays.collectAsState()
+    val total = weekly.sumOf { it.steps }
+    val avg = if (weekly.isEmpty()) 0 else total / weekly.size
+    val co2 = weekly.sumOf { it.carbonSaved.toDouble() }.toFloat()
+    val best = weekly.maxOfOrNull { it.steps } ?: 0
+    if (weekly.isEmpty()) return
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = stringResource(R.string.home_wrapped_title), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(text = stringResource(R.string.home_wrapped_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.home_wrapped_total_steps, total), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = stringResource(R.string.home_wrapped_avg, avg), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.home_wrapped_co2, co2), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f), modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = stringResource(R.string.home_wrapped_best, best), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f), modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}

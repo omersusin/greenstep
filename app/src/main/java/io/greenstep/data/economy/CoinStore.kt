@@ -39,4 +39,6 @@ class CoinStore(private val context: Context) {
         }
         return success
     }
+
+    suspend fun clear() { context.coinDataStore.edit { it.clear() } }
 }

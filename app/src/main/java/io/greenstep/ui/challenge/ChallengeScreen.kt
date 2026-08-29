@@ -6,10 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +28,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material.icons.outlined.Eco
-import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material3.AssistChip
@@ -43,6 +43,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,8 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -62,7 +62,9 @@ import io.greenstep.data.challenge.ChallengeDuration
 import io.greenstep.data.challenge.ChallengeType
 import io.greenstep.data.challenge.ecoAdventureCheckpoints
 import io.greenstep.data.challenge.sampleEcoAdventure
+import io.greenstep.ui.components.rememberHaptics
 import io.greenstep.ui.theme.GreenStepMotion
+import io.greenstep.ui.theme.ThemeManager
 
 @Composable
 fun ChallengeScreen(
@@ -115,10 +117,16 @@ private fun ChallengeFilterBar(selected: ChallengeType?, onSelect: (ChallengeTyp
 
 @Composable
 private fun EcoAdventureHero(progress: Float, joined: Boolean, onJoin: () -> Unit) {
-    val animated by animateFloatAsState(targetValue = progress, animationSpec = GreenStepMotion.expressiveSpringSpec(), label = "ecoProg")
-    val haptic = LocalHapticFeedback.current
+    val ctx = LocalContext.current
+    val reduceMotion by ThemeManager.reduceMotionFlow(ctx).collectAsState(initial = false)
+    val animated by animateFloatAsState(targetValue = progress, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpringSpec() else GreenStepMotion.expressiveSpringSpec(), label = "ecoProg")
+    val haptic = rememberHaptics()
     var certVisible by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(targetValue = if (joined) 1.02f else 1f, animationSpec = GreenStepMotion.expressiveSpringSpec(), label = "ecoScale")
+    val joinedScale by animateFloatAsState(targetValue = if (joined && !reduceMotion) 1.02f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.expressiveSpring, label = "ecoScale")
+    val pressInteraction = remember { MutableInteractionSource() }
+    val pressed by pressInteraction.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(targetValue = if (pressed) 0.97f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "ecoPress")
+    val scale = joinedScale * pressScale
     Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).scale(scale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), shape = RoundedCornerShape(20.dp)) {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth().animateContentSize()) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -136,12 +144,11 @@ private fun EcoAdventureHero(progress: Float, joined: Boolean, onJoin: () -> Uni
                     LinearProgressIndicator(progress = { animated }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)))
                     Text(text = "${(animated * 120).toInt()} / 120 km • ${(animated * 10).toInt()} / 10 trees", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
                 }
-                Button(onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onJoin()
-                    if (!joined) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                }, modifier = Modifier.widthIn(max = 120.dp)) {
-                    Text(text = if (joined) "Joined ✓" else "Join", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
+                val btnInter = remember { MutableInteractionSource() }
+                val btnPressed by btnInter.collectIsPressedAsState()
+                val btnScale by animateFloatAsState(targetValue = if (btnPressed) 0.97f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "ecoBtn")
+                Button(onClick = { if (joined) haptic.tick() else haptic.success(); onJoin() }, interactionSource = btnInter, modifier = Modifier.widthIn(max = 120.dp).scale(btnScale)) {
+                    Text(text = if (joined) "Joined ✓" else "Join", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.widthIn(max = 90.dp))
                 }
             }
             Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -178,11 +185,13 @@ private fun EcoAdventureHero(progress: Float, joined: Boolean, onJoin: () -> Uni
 
 @Composable
 private fun ChallengeCard(challenge: Challenge, joined: Boolean, onJoin: () -> Unit) {
-    val haptic = LocalHapticFeedback.current
-    val scale by animateFloatAsState(targetValue = if (joined) 1.02f else 1f, animationSpec = GreenStepMotion.expressiveSpringSpec(), label = "joinScale")
+    val ctx = LocalContext.current
+    val reduceMotion by ThemeManager.reduceMotionFlow(ctx).collectAsState(initial = false)
+    val haptic = rememberHaptics()
+    val joinedScale by animateFloatAsState(targetValue = if (joined && !reduceMotion) 1.02f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.expressiveSpring, label = "joinScale")
     var expanded by remember { mutableStateOf(false) }
-    val animatedProgress by animateFloatAsState(targetValue = challenge.progress.coerceIn(0f, 1f), animationSpec = GreenStepMotion.gentleSpringSpec(), label = "prog")
-    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).scale(scale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), shape = RoundedCornerShape(18.dp)) {
+    val animatedProgress by animateFloatAsState(targetValue = challenge.progress.coerceIn(0f, 1f), animationSpec = if (reduceMotion) GreenStepMotion.gentleSpringSpec() else GreenStepMotion.gentleSpringSpec(), label = "prog")
+    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).scale(joinedScale), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), shape = RoundedCornerShape(18.dp)) {
         Column(modifier = Modifier.padding(14.dp).fillMaxWidth().animateContentSize()) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = iconForType(challenge.type), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
@@ -204,12 +213,11 @@ private fun ChallengeCard(challenge: Challenge, joined: Boolean, onJoin: () -> U
                     LinearProgressIndicator(progress = { animatedProgress }, modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(6.dp)))
                     Text(text = "+${challenge.rewardCoins} coins", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.padding(top = 4.dp))
                 }
-                Button(onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onJoin()
-                    if (!joined) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                }, colors = if (joined) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) else ButtonDefaults.buttonColors(), modifier = Modifier.widthIn(max = 120.dp)) {
-                    Text(text = if (joined) "Joined" else "Join", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, fontWeight = FontWeight.Bold)
+                val joinInter = remember { MutableInteractionSource() }
+                val joinPressed by joinInter.collectIsPressedAsState()
+                val joinScale by animateFloatAsState(targetValue = if (joinPressed) 0.97f else 1f, animationSpec = if (reduceMotion) GreenStepMotion.gentleSpring else GreenStepMotion.pressSpring, label = "joinBtn")
+                Button(onClick = { haptic.tick(); onJoin(); if (!joined) haptic.success() }, interactionSource = joinInter, colors = if (joined) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) else ButtonDefaults.buttonColors(), modifier = Modifier.widthIn(max = 120.dp).scale(joinScale)) {
+                    Text(text = if (joined) "Joined" else "Join", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, fontWeight = FontWeight.Bold, modifier = Modifier.widthIn(max = 90.dp))
                 }
             }
             Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
