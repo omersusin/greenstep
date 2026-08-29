@@ -40,4 +40,3 @@ fun ProvideMotionScheme(reduceMotion: Boolean = false, content: @Composable () -
     ) else MotionScheme(reduceMotion = false)
     androidx.compose.runtime.CompositionLocalProvider(LocalMotionScheme provides scheme) { content() }
 }
-}

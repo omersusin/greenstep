@@ -235,7 +235,7 @@ private fun PermissionCard(title:String, body:String, action:String, onClick:()-
 private fun StatOverlayCard(title:String, value:String, modifier:Modifier=Modifier){
     Card(shape = RoundedCornerShape(24.dp), modifier=modifier, colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface), elevation=CardDefaults.cardElevation(defaultElevation=1.dp)){
         Column(modifier=Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(4.dp), horizontalAlignment=Alignment.CenterHorizontally){
-            ConstrainedText(text=title, style=MaterialTheme.typography.labelMedium, color=MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text=title, style=MaterialTheme.typography.labelMedium, color=MaterialTheme.colorScheme.onSurfaceVariant, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false)
             ConstrainedText(text=value, style=MaterialTheme.typography.titleMedium, maxLines=1)
         }
     }

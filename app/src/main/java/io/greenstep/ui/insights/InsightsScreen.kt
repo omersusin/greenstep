@@ -66,14 +66,14 @@ internal fun InsightsContent(stepsLast14: List<Int>, todaySteps: Int, weeklyAvg:
     }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item(key = "summary") {
-            Row(modifier = Modifier.fillMaxWidth().animateItemPlacement(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SummaryCard(title = stringResource(R.string.insights_summary_today), value = nf.format(todaySteps), modifier = Modifier.weight(1f).animateItemPlacement())
-                SummaryCard(title = stringResource(R.string.insights_summary_weekly_avg), value = nf.format(weeklyAvg), modifier = Modifier.weight(1f).animateItemPlacement())
-                SummaryCard(title = stringResource(R.string.insights_summary_best_day), value = nf.format(bestDaySteps), subtitle = bestDayLabel, modifier = Modifier.weight(1f).animateItemPlacement())
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                SummaryCard(title = stringResource(R.string.insights_summary_today), value = nf.format(todaySteps), modifier = Modifier.weight(1f))
+                SummaryCard(title = stringResource(R.string.insights_summary_weekly_avg), value = nf.format(weeklyAvg), modifier = Modifier.weight(1f))
+                SummaryCard(title = stringResource(R.string.insights_summary_best_day), value = nf.format(bestDaySteps), subtitle = bestDayLabel, modifier = Modifier.weight(1f))
             }
         }
         item(key = "sparkline") {
-            Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth().animateItemPlacement()) {
+            Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = stringResource(R.string.insights_trend_title), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
                     Text(text = stringResource(R.string.insights_trend_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -82,7 +82,7 @@ internal fun InsightsContent(stepsLast14: List<Int>, todaySteps: Int, weeklyAvg:
             }
         }
         item(key = "heatmap") {
-            Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth().animateItemPlacement()) {
+            Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = stringResource(R.string.insights_heatmap_title), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
                     HeatmapView(steps = stepsLast14, columns = 7, rows = 2)

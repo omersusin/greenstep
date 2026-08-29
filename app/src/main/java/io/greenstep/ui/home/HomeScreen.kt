@@ -59,7 +59,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onShopClick: () -> Unit = {}, viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(onShopClick: () -> Unit = {}, onChallengesClick: () -> Unit = {}, onFeedClick: () -> Unit = {}, viewModel: HomeViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val day = uiState.day
     val streak = uiState.streak

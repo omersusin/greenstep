@@ -8,11 +8,11 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,70 +45,70 @@ fun GreenStepNav() {
     val currentRoute = backStackEntry?.destination?.route
     var showMore by remember { mutableStateOf(false) }
     val secondary = listOf(Destination.Challenges, Destination.Feed, Destination.Shop, Destination.Settings, Destination.Places)
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                BottomBarDestinations.forEach { dest ->
-                    val selected = currentRoute?.let { route ->
-                        backStackEntry?.destination?.hierarchy?.any { it.route == dest.route }
-                    } ?: (currentRoute == dest.route)
-                    NavigationBarItem(
-                        selected = selected == true || currentRoute == dest.route,
-                        onClick = {
-                            navController.navigate(dest.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(imageVector = dest.icon, contentDescription = stringResource(dest.labelRes)) },
-                        label = { Text(text = stringResource(dest.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
-                    )
-                }
-                Box {
+    Box {
+        Scaffold(
+            bottomBar = {
+                NavigationBar {
+                    BottomBarDestinations.forEach { dest ->
+                        val selected = currentRoute?.let { route ->
+                            backStackEntry?.destination?.hierarchy?.any { it.route == dest.route }
+                        } ?: (currentRoute == dest.route)
+                        NavigationBarItem(
+                            selected = selected == true || currentRoute == dest.route,
+                            onClick = {
+                                navController.navigate(dest.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = { Icon(imageVector = dest.icon, contentDescription = stringResource(dest.labelRes)) },
+                            label = { Text(text = stringResource(dest.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
+                        )
+                    }
                     NavigationBarItem(
                         selected = secondary.any { it.route == currentRoute },
                         onClick = { showMore = true },
                         icon = { Icon(Icons.Outlined.MoreVert, contentDescription = "More") },
                         label = { Text("More", maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false) }
                     )
-                    DropdownMenu(expanded = showMore, onDismissRequest = { showMore = false }) {
-                        secondary.forEach { dest ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(dest.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.widthIn(max = 160.dp)) },
-                                onClick = {
-                                    showMore = false
-                                    navController.navigate(dest.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                leadingIcon = { Icon(dest.icon, contentDescription = null) }
-                            )
-                        }
-                    }
                 }
             }
+        ) { padding ->
+            NavHost(navController = navController, startDestination = Destination.Home.route, modifier = Modifier.padding(padding)) {
+                composable(Destination.Home.route) {
+                    HomeScreen(
+                        onShopClick = { navController.navigate(Destination.Shop.route) },
+                        onChallengesClick = { navController.navigate(Destination.Challenges.route) },
+                        onFeedClick = { navController.navigate(Destination.Feed.route) }
+                    )
+                }
+                composable(Destination.Activity.route) { ActivityScreen() }
+                composable(Destination.Map.route) { MapScreen() }
+                composable(Destination.History.route) { HistoryScreen() }
+                composable(Destination.Insights.route) { InsightsScreen() }
+                composable(Destination.Shop.route) { ShopScreen() }
+                composable(Destination.Settings.route) { SettingsScreen() }
+                composable(Destination.Places.route) { PlacesScreen() }
+                composable(Destination.Challenges.route) { ChallengeScreen() }
+                composable(Destination.Feed.route) { FeedScreen() }
+            }
         }
-    ) { padding ->
-        NavHost(navController = navController, startDestination = Destination.Home.route, modifier = Modifier.padding(padding)) {
-            composable(Destination.Home.route) {
-                HomeScreen(
-                    onShopClick = { navController.navigate(Destination.Shop.route) },
-                    onChallengesClick = { navController.navigate(Destination.Challenges.route) },
-                    onFeedClick = { navController.navigate(Destination.Feed.route) }
+        DropdownMenu(expanded = showMore, onDismissRequest = { showMore = false }) {
+            secondary.forEach { dest ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(dest.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false, modifier = Modifier.widthIn(max = 160.dp)) },
+                    onClick = {
+                        showMore = false
+                        navController.navigate(dest.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    leadingIcon = { Icon(dest.icon, contentDescription = null) }
                 )
             }
-            composable(Destination.Activity.route) { ActivityScreen() }
-            composable(Destination.Map.route) { MapScreen() }
-            composable(Destination.History.route) { HistoryScreen() }
-            composable(Destination.Insights.route) { InsightsScreen() }
-            composable(Destination.Shop.route) { ShopScreen() }
-            composable(Destination.Settings.route) { SettingsScreen() }
-            composable(Destination.Places.route) { PlacesScreen() }
-            composable(Destination.Challenges.route) { ChallengeScreen() }
-            composable(Destination.Feed.route) { FeedScreen() }
         }
     }
 }

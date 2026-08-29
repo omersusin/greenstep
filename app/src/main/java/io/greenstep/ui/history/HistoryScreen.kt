@@ -63,7 +63,7 @@ internal fun HistoryContent(days: List<Day>) {
     val avgGoal = remember(days) { if (days.isEmpty()) 7500 else days.map { it.goal }.average().toInt().coerceAtLeast(1) }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item(key = "heatmap") {
-            Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth().animateItemPlacement()) {
+            Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = stringResource(R.string.history_heatmap_title), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, softWrap = false)
                     Text(text = stringResource(R.string.history_heatmap_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -72,7 +72,7 @@ internal fun HistoryContent(days: List<Day>) {
             }
         }
         items(days, key = { it.date.toEpochDay() }) { day ->
-            HistoryDayCard(day = day, modifier = Modifier.animateItemPlacement())
+            HistoryDayCard(day = day, modifier = Modifier)
         }
     }
 }
