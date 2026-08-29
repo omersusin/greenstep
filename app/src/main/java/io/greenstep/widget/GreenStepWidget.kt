@@ -11,6 +11,7 @@ import io.greenstep.R
 import io.greenstep.data.day.GreenStepDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -30,7 +31,7 @@ class GreenStepWidget : AppWidgetProvider() {
                     val db = GreenStepDatabase.getDatabase(context)
                     val today = LocalDate.now()
                     var steps = 0; var goal = 7500
-                    try { kotlinx.coroutines.flow.first(db.dayDao().getDay(today))?.let { steps = it.steps; goal = it.goal } } catch (_: Exception) {}
+                    try { first(db.dayDao().getDay(today))?.let { steps = it.steps; goal = it.goal } } catch (_: Exception) {}
                     val pct = (steps * 100 / goal.coerceAtLeast(1)).coerceIn(0, 100)
                     withContext(Dispatchers.Main) {
                         val rv = RemoteViews(context.packageName, R.layout.widget_greenstep)
