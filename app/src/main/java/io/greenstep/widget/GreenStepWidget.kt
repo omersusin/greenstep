@@ -31,7 +31,8 @@ class GreenStepWidget : AppWidgetProvider() {
                     val db = GreenStepDatabase.getDatabase(context)
                     val today = LocalDate.now()
                     var steps = 0; var goal = 7500
-                    try { first(db.dayDao().getDay(today))?.let { steps = it.steps; goal = it.goal } } catch (_: Exception) {}
+                    val day = try { first(db.dayDao().getDay(today)) } catch (_: Exception) { null }
+                    if (day != null) { steps = day.steps; goal = day.goal }
                     val pct = (steps * 100 / goal.coerceAtLeast(1)).coerceIn(0, 100)
                     withContext(Dispatchers.Main) {
                         val rv = RemoteViews(context.packageName, R.layout.widget_greenstep)
