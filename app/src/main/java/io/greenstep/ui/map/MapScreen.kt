@@ -311,7 +311,7 @@ private fun RouteHistorySection(){
                 Row(modifier=Modifier.fillMaxWidth().padding(14.dp), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.SpaceBetween){
                     Column(modifier=Modifier.weight(1f)){
                         ConstrainedText(text="%.2f km • %s".format(e.distanceKm, formatDuration(e.durationMs)), style=MaterialTheme.typography.titleSmall)
-                        ConstrainedText(text="${pts.size} pts • ${e.id.take(8)}", style=MaterialTheme.typography.labelSmall, color=MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text="${pts.size} pts • ${e.id.take(8)}", style=MaterialTheme.typography.labelSmall, color=MaterialTheme.colorScheme.onSurfaceVariant, maxLines=1, overflow=TextOverflow.Ellipsis, softWrap=false)
                     }
                     IconButton(onClick={
                         val gpx = GpxExporter.toGpx(pts, "Route ${e.id.take(6)}")
