@@ -132,7 +132,7 @@ fun SettingsScreen() {
                 var lastBucket by remember { mutableStateOf(dailyGoal / 500) }
                 Slider(value = dailyGoal.toFloat(), onValueChange = { v ->
                     val bucket = v.toInt() / 500
-                    if (bucket != lastBucket) { lastBucket = bucket; if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+                    if (bucket != lastBucket) { lastBucket = bucket; if (hapticsEnabled) haptic.tick() }
                     scope.launch { ThemeManager.setDailyGoal(context, v.toInt()); syncDaySettings { copy(goal = v.toInt()) } }
                 }, valueRange = 1000f..20000f, steps = 37)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
